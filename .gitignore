@@ -1,0 +1,11 @@
+.next
+node_modules
+.env.local
+.vercel
+coverage
+dist
+npm-debug.log*
+.agents/
+.opencode/
+.playwright-mcp/
+.claude/

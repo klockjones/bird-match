@@ -1,0 +1,5 @@
+# Supabase CLI local config placeholder.
+# Fill this in after `supabase init` if you decide to use the CLI locally.
+
+[project]
+name = "bird-match"
