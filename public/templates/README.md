@@ -48,5 +48,5 @@ Notes:
 
 - Player names in match import must already exist in the event participant list
 - Use blank `player_a2` / `player_b2` for singles
-- `status` should be one of: `waiting`, `ready`, `playing`, `done`
+- `status` should be one of: `waiting`, `done`
 - `scheduled_at` can use `YYYY-MM-DDTHH:mm`

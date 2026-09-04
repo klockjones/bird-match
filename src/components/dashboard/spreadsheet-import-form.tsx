@@ -8,9 +8,17 @@ type ColumnRule = {
   aliases: string[];
 };
 
+type ColumnInfo = {
+  key: string;
+  label: string;
+};
+
 type SpreadsheetImportFormProps = {
   title: string;
-  description: string;
+  formats: string[];
+  requiredColumns: ColumnInfo[];
+  optionalColumns: ColumnInfo[];
+  templateUrl: string;
   submitLabel: string;
   action: (formData: FormData) => Promise<void>;
   hiddenFields: Array<{ name: string; value: string }>;
@@ -30,7 +38,10 @@ type PreviewState = {
 
 export function SpreadsheetImportForm({
   title,
-  description,
+  formats,
+  requiredColumns,
+  optionalColumns,
+  templateUrl,
   submitLabel,
   action,
   hiddenFields,
@@ -96,8 +107,25 @@ export function SpreadsheetImportForm({
       ))}
 
       <div>
-        <h2 style={{ margin: 0 }}>{title}</h2>
-        <p style={{ margin: "8px 0 0", color: "#475569" }}>{description}</p>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+          <h2 style={{ margin: 0 }}>{title}</h2>
+          <a href={templateUrl} download style={{ color: "#1d4ed8", fontSize: 14, fontWeight: 700 }}>템플릿 다운로드</a>
+        </div>
+        <p style={{ margin: "8px 0 0", color: "#475569" }}>지원 형식: {formats.join(" · ")}</p>
+        <div className="import-column-row" style={{ marginTop: 10 }}>
+          <span className="import-column-row-label">필수 컬럼</span>
+          {requiredColumns.map((column) => (
+            <span key={column.key} className="import-column-chip required">{column.label} ({column.key})</span>
+          ))}
+        </div>
+        {optionalColumns.length > 0 ? (
+          <div className="import-column-row" style={{ marginTop: 6 }}>
+            <span className="import-column-row-label">선택 컬럼</span>
+            {optionalColumns.map((column) => (
+              <span key={column.key} className="import-column-chip">{column.label} ({column.key})</span>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <input

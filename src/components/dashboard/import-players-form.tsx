@@ -9,7 +9,19 @@ export function ImportPlayersForm({ eventId }: ImportPlayersFormProps) {
   return (
     <SpreadsheetImportForm
       title="명단 파일 업로드"
-      description="지원 형식: CSV / XLSX / XLS · 컬럼: name, gender, level, phone, memo, team, seed"
+      formats={["CSV", "XLSX", "XLS"]}
+      requiredColumns={[
+        { key: "name", label: "이름" },
+        { key: "gender", label: "성별" },
+        { key: "level", label: "급수" },
+      ]}
+      optionalColumns={[
+        { key: "phone", label: "연락처" },
+        { key: "memo", label: "메모" },
+        { key: "team", label: "팀" },
+        { key: "seed", label: "시드" },
+      ]}
+      templateUrl="/templates/roster-template.csv"
       submitLabel="미리보기 확인 후 명단 업로드"
       action={importPlayersCsv}
       hiddenFields={[{ name: "eventId", value: eventId }]}

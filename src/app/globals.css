@@ -1366,6 +1366,38 @@ a:focus-visible {
   font-weight: 700;
 }
 
+.import-column-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.import-column-row-label {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.import-column-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.import-column-chip.required {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
 .participant-note-card {
   padding: 12px 14px;
   border: 1px solid #e2e8f0;
