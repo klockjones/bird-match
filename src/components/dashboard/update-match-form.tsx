@@ -1,4 +1,5 @@
 import { deleteMatch, updateMatch } from "@/app/dashboard/[eventId]/matches/actions";
+import { HoldToConfirmButton } from "@/components/ui/hold-to-confirm-button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import type { EventDetailItem } from "@/lib/types/event";
 import type { MatchItem } from "@/lib/types/match";
@@ -106,13 +107,12 @@ export function UpdateMatchForm({ event, match, participants }: UpdateMatchFormP
         <input type="hidden" name="eventId" value={event.id} />
         <input type="hidden" name="matchId" value={match.id} />
         <input type="hidden" name="publicUuid" value={event.public_uuid} />
-        <SubmitButton
+        <HoldToConfirmButton
           className="danger-button"
+          label="꾹 눌러서 삭제"
+          holdingLabel="손을 떼면 취소돼요..."
           pendingLabel="삭제 중..."
-          confirmMessage={`${match.match_no}경기를 삭제할까요? 이 작업은 되돌릴 수 없습니다.`}
-        >
-          경기 삭제
-        </SubmitButton>
+        />
       </form>
     </div>
   );

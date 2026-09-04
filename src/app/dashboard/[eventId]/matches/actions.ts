@@ -112,7 +112,7 @@ export async function createMatch(formData: FormData) {
 
   revalidatePath(`/dashboard/${values.eventId}`);
   revalidatePath(`/dashboard/${values.eventId}/matches`);
-  redirect(`/dashboard/${values.eventId}/matches/new?created=1`);
+  redirect(`/dashboard/${values.eventId}/matches/new?created=1&t=${Date.now()}`);
 }
 
 export async function updateMatch(formData: FormData) {
@@ -197,7 +197,7 @@ export async function updateMatch(formData: FormData) {
   revalidatePath(`/dashboard/${values.eventId}`);
   revalidatePath(`/dashboard/${values.eventId}/matches`);
   revalidatePath(`/bracket/${formData.get("publicUuid") ?? ""}`);
-  redirect(`/dashboard/${values.eventId}/matches?updated=1`);
+  redirect(`/dashboard/${values.eventId}/matches?updated=1&t=${Date.now()}`);
 }
 
 export async function updateMatchScore(formData: FormData) {
@@ -244,7 +244,7 @@ export async function updateMatchScore(formData: FormData) {
   revalidatePath(`/dashboard/${values.eventId}`);
   revalidatePath(`/dashboard/${values.eventId}/matches`);
   revalidatePath(`/bracket/${formData.get("publicUuid") ?? ""}`);
-  redirect(`/dashboard/${values.eventId}/matches?updated=1`);
+  redirect(`/dashboard/${values.eventId}/matches?updated=1&t=${Date.now()}`);
 }
 
 export async function deleteMatch(formData: FormData) {
@@ -270,5 +270,5 @@ export async function deleteMatch(formData: FormData) {
   revalidatePath(`/dashboard/${values.eventId}`);
   revalidatePath(`/dashboard/${values.eventId}/matches`);
   revalidatePath(`/bracket/${formData.get("publicUuid") ?? ""}`);
-  redirect(`/dashboard/${values.eventId}/matches?deleted=1`);
+  redirect(`/dashboard/${values.eventId}/matches?deleted=1&t=${Date.now()}`);
 }

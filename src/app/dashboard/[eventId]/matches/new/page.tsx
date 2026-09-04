@@ -2,13 +2,14 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CreateMatchForm } from "@/components/dashboard/create-match-form";
 import { OperatorTopBar } from "@/components/ui/operator-top-bar";
+import { Toast } from "@/components/ui/toast";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { EventDetailItem } from "@/lib/types/event";
 import type { EventPlayerItem, PlayerItem } from "@/lib/types/player";
 
 type NewMatchPageProps = {
   params: Promise<{ eventId: string }>;
-  searchParams?: Promise<{ created?: string; error?: string }>;
+  searchParams?: Promise<{ created?: string; error?: string; t?: string }>;
 };
 
 type EventPlayerRow = {
@@ -55,7 +56,7 @@ export default async function NewMatchPage({ params, searchParams }: NewMatchPag
         <h1 style={{ margin: 0 }}>경기 생성</h1>
       </div>
 
-      {query?.created ? <p className="admin-inline-message success">경기가 생성되었습니다. 이어서 다음 경기를 등록할 수 있습니다.</p> : null}
+      {query?.created ? <Toast key={query.t} message="경기가 생성되었습니다. 이어서 다음 경기를 등록할 수 있습니다." /> : null}
       {query?.error ? <p className="admin-inline-message error">{query.error}</p> : null}
       {eventPlayersError ? <p className="admin-inline-message error">참가자 목록을 불러오지 못했습니다: {eventPlayersError.message}</p> : null}
 

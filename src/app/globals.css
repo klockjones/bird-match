@@ -377,6 +377,7 @@ a:focus-visible {
 
 .status-chip.waiting { background: #e2e8f0; color: #334155; }
 .status-chip.done { background: #ede9fe; color: #6d28d9; }
+.status-chip.next { background: #dbeafe; color: #1d4ed8; }
 .status-chip.draft { background: #e2e8f0; color: #334155; }
 .status-chip.published { background: #dcfce7; color: #15803d; }
 .status-chip.closed { background: #ede9fe; color: #6d28d9; }
@@ -499,6 +500,32 @@ a:focus-visible {
   gap: 12px;
 }
 
+.court-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.court-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 6px 16px;
+  border: 1px solid #dbe3ef;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 14px;
+  font-weight: var(--weight-semibold);
+}
+
+.court-filter-chip.active {
+  border-color: #1d4ed8;
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
 .matchboard-queue-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -512,6 +539,39 @@ a:focus-visible {
 .match-card.current {
   border-color: #93c5fd;
   box-shadow: 0 16px 34px rgba(37, 99, 235, 0.14);
+}
+
+.match-card-flash {
+  animation: matchCardFlash 1.6s ease-out;
+}
+
+@keyframes matchCardFlash {
+  0% { background-color: #eff6ff; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.45); }
+  100% { background-color: #ffffff; box-shadow: var(--shadow-soft-card); }
+}
+
+.matchboard-queue-grid > * {
+  animation: cardEnter 0.36s ease-out both;
+}
+
+.matchboard-queue-grid > *:nth-child(2) { animation-delay: 40ms; }
+.matchboard-queue-grid > *:nth-child(3) { animation-delay: 80ms; }
+.matchboard-queue-grid > *:nth-child(4) { animation-delay: 120ms; }
+.matchboard-queue-grid > *:nth-child(5) { animation-delay: 160ms; }
+.matchboard-queue-grid > *:nth-child(6) { animation-delay: 200ms; }
+.matchboard-queue-grid > *:nth-child(n+7) { animation-delay: 240ms; }
+
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .match-card-flash,
+  .matchboard-queue-grid > *,
+  .toast {
+    animation: none;
+  }
 }
 
 .match-line {
@@ -553,8 +613,8 @@ a:focus-visible {
 
 .team-caption::before {
   content: "";
-  width: 10px;
-  height: 10px;
+  width: 14px;
+  height: 14px;
   border-radius: 999px;
   background: var(--team-dot-bg, #94a3b8);
   box-shadow: 0 0 0 4px var(--team-dot-ring, rgba(148, 163, 184, 0.16));
@@ -862,6 +922,37 @@ a:focus-visible {
   color: #b91c1c;
 }
 
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 40;
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: var(--weight-semibold);
+  box-shadow: var(--shadow-soft-card);
+  animation: toastPop 3.2s ease forwards;
+}
+
+.toast-success {
+  background: #166534;
+  color: #ffffff;
+}
+
+.toast-error {
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+@keyframes toastPop {
+  0% { opacity: 0; transform: translate(-50%, 8px); }
+  8% { opacity: 1; transform: translate(-50%, 0); }
+  85% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, 8px); }
+}
+
 .event-hub-grid {
   display: grid;
   gap: 16px;
@@ -1055,6 +1146,30 @@ a:focus-visible {
   border-color: #fecaca;
   background: #fff1f2;
   color: #b91c1c;
+}
+
+.hold-confirm-button {
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.hold-confirm-fill {
+  position: absolute;
+  inset: 0;
+  width: 0%;
+  background: rgba(185, 28, 28, 0.18);
+}
+
+.hold-confirm-fill.active {
+  width: 100%;
+  transition: width var(--hold-ms, 900ms) linear;
+}
+
+.hold-confirm-label {
+  position: relative;
 }
 
 .dashboard-shell {

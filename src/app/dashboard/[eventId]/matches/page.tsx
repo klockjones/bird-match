@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { QuickScoreForm } from "@/components/dashboard/quick-score-form";
 import { UpdateMatchForm } from "@/components/dashboard/update-match-form";
 import { OperatorTopBar } from "@/components/ui/operator-top-bar";
+import { Toast } from "@/components/ui/toast";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { EventDetailItem } from "@/lib/types/event";
 import type { MatchItem, MatchPlayerSlot } from "@/lib/types/match";
@@ -12,7 +13,7 @@ import { getTeamAccentStyle } from "@/lib/utils/team-accent";
 
 type EventMatchesPageProps = {
   params: Promise<{ eventId: string }>;
-  searchParams?: Promise<{ created?: string; updated?: string; deleted?: string; error?: string }>;
+  searchParams?: Promise<{ created?: string; updated?: string; deleted?: string; error?: string; t?: string }>;
 };
 
 type EventPlayerRow = {
@@ -70,6 +71,13 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
   })) as MatchItem[];
   const waitingCount = matchList.filter((match) => match.status !== "done").length;
   const doneCount = matchList.filter((match) => match.status === "done").length;
+  const successMessage = query?.created
+    ? "경기가 생성되었습니다."
+    : query?.updated
+      ? "경기 상태와 점수가 저장되었습니다."
+      : query?.deleted
+        ? "경기가 삭제되었습니다."
+        : null;
 
   return (
     <main className="admin-page-shell">
@@ -87,9 +95,7 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
         </div>
       </div>
 
-      {query?.created ? <p className="admin-inline-message success">경기가 생성되었습니다.</p> : null}
-      {query?.updated ? <p className="admin-inline-message success">경기 상태와 점수가 저장되었습니다.</p> : null}
-      {query?.deleted ? <p className="admin-inline-message success">경기가 삭제되었습니다.</p> : null}
+      {successMessage ? <Toast key={query?.t} message={successMessage} /> : null}
       {query?.error ? <p className="admin-inline-message error">{query.error}</p> : null}
       {eventPlayersError ? <p className="admin-inline-message error">참가자 목록을 불러오지 못했습니다: {eventPlayersError.message}</p> : null}
       {matchesError ? <p className="admin-inline-message error">경기 목록을 불러오지 못했습니다: {matchesError.message}</p> : null}
