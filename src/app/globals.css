@@ -500,13 +500,13 @@ a:focus-visible {
   gap: 12px;
 }
 
-.court-filter-row {
+.filter-pill-row {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.court-filter-chip {
+.filter-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -520,7 +520,7 @@ a:focus-visible {
   font-weight: var(--weight-semibold);
 }
 
-.court-filter-chip.active {
+.filter-pill.active {
   border-color: #1d4ed8;
   background: #1d4ed8;
   color: #ffffff;
@@ -1321,6 +1321,13 @@ a:focus-visible {
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
 
+.participant-add-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  align-items: start;
+}
+
 .participant-card {
   padding: 16px;
   border: 1px solid #dbe3ef;
@@ -1364,6 +1371,24 @@ a:focus-visible {
   border: 1px solid #e2e8f0;
   border-radius: 14px;
   background: #f8fafc;
+}
+
+.participant-note-card .player-secondary-text {
+  color: #334155;
+}
+
+.participant-search-row {
+  display: flex;
+  gap: 8px;
+}
+
+.participant-search-row input[type="search"] {
+  flex: 1 1 auto;
+}
+
+.participant-search-row button {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .operator-topbar {

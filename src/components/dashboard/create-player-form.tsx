@@ -16,7 +16,11 @@ export function CreatePlayerForm() {
       <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
         <label style={{ display: "grid", gap: 6 }}>
           <span>성별/구분</span>
-          <input name="gender" placeholder="예: 남 / 여 / 혼복" />
+          <select name="gender" defaultValue="">
+            <option value="">선택 안 함</option>
+            <option value="남">남</option>
+            <option value="여">여</option>
+          </select>
         </label>
         <label style={{ display: "grid", gap: 6 }}>
           <span>급수/레벨</span>

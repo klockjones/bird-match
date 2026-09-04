@@ -121,10 +121,10 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
         </div>
 
         {courtOptions.length > 1 ? (
-          <div className="court-filter-row">
-            <a href="?" className={`court-filter-chip${selectedCourt ? "" : " active"}`}>전체</a>
+          <div className="filter-pill-row">
+            <a href="?" className={`filter-pill${selectedCourt ? "" : " active"}`}>전체</a>
             {courtOptions.map((court) => (
-              <a key={court} href={`?court=${encodeURIComponent(court)}`} className={`court-filter-chip${selectedCourt === court ? " active" : ""}`}>
+              <a key={court} href={`?court=${encodeURIComponent(court)}`} className={`filter-pill${selectedCourt === court ? " active" : ""}`}>
                 {court}
               </a>
             ))}

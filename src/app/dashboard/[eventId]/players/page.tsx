@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AddEventPlayerForm } from "@/components/dashboard/add-event-player-form";
+import { CreateEventPlayerForm } from "@/components/dashboard/create-event-player-form";
 import { EmptyStateCard } from "@/components/ui/empty-state-card";
 import { OperatorTopBar } from "@/components/ui/operator-top-bar";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -17,8 +18,23 @@ type EventPlayersPageProps = {
   searchParams?: Promise<{
     added?: string;
     error?: string;
+    team?: string;
+    sort?: string;
+    q?: string;
   }>;
 };
+
+const UNASSIGNED_TEAM = "__unassigned__";
+
+function buildParticipantsHref(current: { team?: string; sort?: string; q?: string }, overrides: { team?: string; sort?: string; q?: string }) {
+  const merged = { ...current, ...overrides };
+  const params = new URLSearchParams();
+  if (merged.team) params.set("team", merged.team);
+  if (merged.sort) params.set("sort", merged.sort);
+  if (merged.q) params.set("q", merged.q);
+  const qs = params.toString();
+  return qs ? `?${qs}` : "?";
+}
 
 type EventPlayerRow = {
   id: string;
@@ -93,6 +109,24 @@ export default async function EventPlayersPage({ params, searchParams }: EventPl
   const team2Count = detail.team_label_2 ? participantList.filter((item) => item.team === detail.team_label_2).length : 0;
   const unassignedCount = participantList.filter((item) => !item.team).length;
 
+  const teamOptions = [...new Set(participantList.map((item) => item.team).filter((team): team is string => Boolean(team)))];
+  const selectedTeam = query?.team && (query.team === UNASSIGNED_TEAM || teamOptions.includes(query.team)) ? query.team : null;
+  const sortOrder = query?.sort === "name" || query?.sort === "seed" ? query.sort : "recent";
+  const searchTerm = query?.q?.trim().toLowerCase() ?? "";
+
+  const visibleParticipants = participantList
+    .filter((item) => {
+      if (!selectedTeam) return true;
+      if (selectedTeam === UNASSIGNED_TEAM) return !item.team;
+      return item.team === selectedTeam;
+    })
+    .filter((item) => !searchTerm || item.player.name.toLowerCase().includes(searchTerm))
+    .sort((left, right) => {
+      if (sortOrder === "name") return left.player.name.localeCompare(right.player.name, "ko");
+      if (sortOrder === "seed") return (left.seed ?? Number.MAX_SAFE_INTEGER) - (right.seed ?? Number.MAX_SAFE_INTEGER);
+      return 0;
+    });
+
   return (
     <main className="admin-page-shell">
       <div className="admin-hero">
@@ -116,16 +150,47 @@ export default async function EventPlayersPage({ params, searchParams }: EventPl
         <SummaryCard label="팀 미지정" value={unassignedCount} />
       </section>
 
-      <AddEventPlayerForm event={detail} players={availablePlayers} />
+      <section className="admin-stack">
+        <SectionHeader title="참가자 추가" description="이미 등록된 선수를 골라 연결하거나, 없는 사람이면 바로 등록하면서 추가합니다." />
+        <div className="participant-add-grid">
+          <AddEventPlayerForm event={detail} players={availablePlayers} teamOptions={teamOptions} />
+          <CreateEventPlayerForm event={detail} teamOptions={teamOptions} />
+        </div>
+      </section>
 
       <section className="admin-stack">
         <SectionHeader title="현재 참가자" description="같은 선수는 동일 이벤트에 한 번만 추가됩니다." />
 
-        {participantList.length === 0 ? (
-          <EmptyStateCard message="아직 참가자가 없습니다." />
+        <form method="GET" className="participant-search-row">
+          <input type="hidden" name="team" value={selectedTeam ?? ""} />
+          <input type="hidden" name="sort" value={sortOrder === "recent" ? "" : sortOrder} />
+          <input type="search" name="q" defaultValue={query?.q ?? ""} placeholder="이름으로 검색" aria-label="참가자 이름 검색" />
+          <button type="submit" className="primary-button">검색</button>
+        </form>
+
+        <div className="filter-pill-row">
+          <a href={buildParticipantsHref({ team: selectedTeam ?? undefined, sort: sortOrder, q: query?.q }, { sort: undefined })} className={`filter-pill${sortOrder === "recent" ? " active" : ""}`}>등록순</a>
+          <a href={buildParticipantsHref({ team: selectedTeam ?? undefined, sort: sortOrder, q: query?.q }, { sort: "name" })} className={`filter-pill${sortOrder === "name" ? " active" : ""}`}>이름순</a>
+          <a href={buildParticipantsHref({ team: selectedTeam ?? undefined, sort: sortOrder, q: query?.q }, { sort: "seed" })} className={`filter-pill${sortOrder === "seed" ? " active" : ""}`}>시드순</a>
+        </div>
+
+        {teamOptions.length > 0 ? (
+          <div className="filter-pill-row">
+            <a href={buildParticipantsHref({ team: selectedTeam ?? undefined, sort: sortOrder, q: query?.q }, { team: undefined })} className={`filter-pill${selectedTeam ? "" : " active"}`}>전체 팀</a>
+            {teamOptions.map((team) => (
+              <a key={team} href={buildParticipantsHref({ team: selectedTeam ?? undefined, sort: sortOrder, q: query?.q }, { team })} className={`filter-pill${selectedTeam === team ? " active" : ""}`}>
+                {team}
+              </a>
+            ))}
+            <a href={buildParticipantsHref({ team: selectedTeam ?? undefined, sort: sortOrder, q: query?.q }, { team: UNASSIGNED_TEAM })} className={`filter-pill${selectedTeam === UNASSIGNED_TEAM ? " active" : ""}`}>미지정</a>
+          </div>
+        ) : null}
+
+        {visibleParticipants.length === 0 ? (
+          <EmptyStateCard message={participantList.length === 0 ? "아직 참가자가 없습니다." : "조건에 맞는 참가자가 없습니다."} />
         ) : (
           <div className="admin-stack">
-            {participantList.map((participant) => (
+            {visibleParticipants.map((participant) => (
               <article key={participant.id} className="participant-card">
                 <div className="participant-card-top">
                   <div className="player-team-stack">
