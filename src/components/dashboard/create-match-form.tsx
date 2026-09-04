@@ -1,4 +1,5 @@
 import { createMatch } from "@/app/dashboard/[eventId]/matches/actions";
+import { SubmitButton } from "@/components/ui/submit-button";
 import type { EventDetailItem } from "@/lib/types/event";
 import type { EventPlayerItem } from "@/lib/types/player";
 
@@ -95,7 +96,9 @@ export function CreateMatchForm({ event, participants }: CreateMatchFormProps) {
         <input name="note" placeholder="예: 메인 코트 우선 배정" />
       </label>
 
-      <button type="submit" disabled={participants.length < 2}>{participants.length < 2 ? "참가자가 부족합니다" : "경기 생성"}</button>
+      <SubmitButton className="primary-button" pendingLabel="생성 중..." disabled={participants.length < 2}>
+        {participants.length < 2 ? "참가자가 부족합니다" : "경기 생성"}
+      </SubmitButton>
     </form>
   );
 }

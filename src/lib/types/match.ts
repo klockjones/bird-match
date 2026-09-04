@@ -1,6 +1,6 @@
 import type { PlayerItem } from "@/lib/types/player";
 
-export type MatchStatus = "waiting" | "ready" | "playing" | "done";
+export type MatchStatus = "waiting" | "done";
 export type MatchSide = "A" | "B";
 
 export type MatchPlayerSlot = {

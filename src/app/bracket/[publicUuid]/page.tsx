@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { AutoRefreshControl } from "@/components/bracket/auto-refresh-control";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { EventDetailItem } from "@/lib/types/event";
 import type { MatchItem, MatchPlayerSlot } from "@/lib/types/match";
@@ -149,6 +150,8 @@ export default async function BracketPage({ params }: BracketPageProps) {
           </div>
         ) : null}
       </section>
+
+      <AutoRefreshControl intervalSeconds={15} />
 
       <section className="queue-section">
         <div>

@@ -18,7 +18,7 @@ async function requireUser() {
   return { supabase, user };
 }
 
-async function validateEventPlayers(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>, eventId: string, playerIds: string[]) {
+async function validateEventPlayers(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>, eventId: string, playerIds: string[], returnPath: string) {
   const { data: eventPlayers, error: eventPlayersError } = await supabase
     .from("event_players")
     .select("player_id")
@@ -26,11 +26,11 @@ async function validateEventPlayers(supabase: Awaited<ReturnType<typeof createSu
     .in("player_id", playerIds);
 
   if (eventPlayersError) {
-    redirect(`/dashboard/${eventId}/matches?error=${encodeURIComponent(eventPlayersError.message)}`);
+    redirect(`${returnPath}?error=${encodeURIComponent(eventPlayersError.message)}`);
   }
 
   if ((eventPlayers ?? []).length !== playerIds.length) {
-    redirect(`/dashboard/${eventId}/matches?error=${encodeURIComponent("이벤트 참가자만 경기 선수로 배정할 수 있습니다.")}`);
+    redirect(`${returnPath}?error=${encodeURIComponent("이벤트 참가자만 경기 선수로 배정할 수 있습니다.")}`);
   }
 }
 
@@ -69,12 +69,12 @@ export async function createMatch(formData: FormData) {
 
   if (!parsed.success) {
     const message = parsed.error.issues[0]?.message ?? "경기 생성 입력값이 올바르지 않습니다.";
-    redirect(`/dashboard/${formData.get("eventId")}/matches?error=${encodeURIComponent(message)}`);
+    redirect(`/dashboard/${formData.get("eventId")}/matches/new?error=${encodeURIComponent(message)}`);
   }
 
   const values = parsed.data;
   const playerIds = [values.playerA1, values.playerA2, values.playerB1, values.playerB2].filter(Boolean);
-  await validateEventPlayers(supabase, values.eventId, playerIds);
+  await validateEventPlayers(supabase, values.eventId, playerIds, `/dashboard/${values.eventId}/matches/new`);
 
   const { data: match, error: matchError } = await supabase
     .from("matches")
@@ -93,7 +93,7 @@ export async function createMatch(formData: FormData) {
     .single();
 
   if (matchError || !match) {
-    redirect(`/dashboard/${values.eventId}/matches?error=${encodeURIComponent(matchError?.message ?? "경기를 생성하지 못했습니다.")}`);
+    redirect(`/dashboard/${values.eventId}/matches/new?error=${encodeURIComponent(matchError?.message ?? "경기를 생성하지 못했습니다.")}`);
   }
 
   const { error: slotError } = await supabase.from("match_players").insert(
@@ -107,12 +107,12 @@ export async function createMatch(formData: FormData) {
 
   if (slotError) {
     await supabase.from("matches").delete().eq("id", match.id);
-    redirect(`/dashboard/${values.eventId}/matches?error=${encodeURIComponent(slotError.message)}`);
+    redirect(`/dashboard/${values.eventId}/matches/new?error=${encodeURIComponent(slotError.message)}`);
   }
 
   revalidatePath(`/dashboard/${values.eventId}`);
   revalidatePath(`/dashboard/${values.eventId}/matches`);
-  redirect(`/dashboard/${values.eventId}/matches?created=1`);
+  redirect(`/dashboard/${values.eventId}/matches/new?created=1`);
 }
 
 export async function updateMatch(formData: FormData) {
@@ -145,10 +145,10 @@ export async function updateMatch(formData: FormData) {
 
   const values = parsed.data;
   const playerIds = [values.playerA1, values.playerA2, values.playerB1, values.playerB2].filter(Boolean);
-  await validateEventPlayers(supabase, values.eventId, playerIds);
+  await validateEventPlayers(supabase, values.eventId, playerIds, `/dashboard/${values.eventId}/matches`);
 
   const nextWinnerSide = values.status === "done" ? values.winnerSide || null : null;
-  const startedAt = values.status === "playing" || values.status === "done" ? new Date().toISOString() : null;
+  const startedAt = values.status === "done" ? new Date().toISOString() : null;
   const endedAt = values.status === "done" ? new Date().toISOString() : null;
 
   const { error } = await supabase
@@ -220,7 +220,7 @@ export async function updateMatchScore(formData: FormData) {
 
   const values = parsed.data;
   const nextWinnerSide = values.status === "done" ? values.winnerSide || null : null;
-  const startedAt = values.status === "playing" || values.status === "done" ? new Date().toISOString() : null;
+  const startedAt = values.status === "done" ? new Date().toISOString() : null;
   const endedAt = values.status === "done" ? new Date().toISOString() : null;
 
   const { error } = await supabase

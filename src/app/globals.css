@@ -99,6 +99,13 @@ button:disabled {
   opacity: 0.6;
 }
 
+button:focus-visible,
+a:focus-visible {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35);
+}
+
 .primary-button {
   border-color: #1d4ed8;
   background: #1d4ed8;
@@ -369,8 +376,6 @@ button:disabled {
 }
 
 .status-chip.waiting { background: #e2e8f0; color: #334155; }
-.status-chip.ready { background: #dbeafe; color: #1d4ed8; }
-.status-chip.playing { background: #dcfce7; color: #15803d; }
 .status-chip.done { background: #ede9fe; color: #6d28d9; }
 .status-chip.draft { background: #e2e8f0; color: #334155; }
 .status-chip.published { background: #dcfce7; color: #15803d; }
@@ -797,19 +802,29 @@ button:disabled {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  padding-top: 10px;
+  gap: 12px;
+  padding-top: 12px;
   border-top: 1px solid #e2e8f0;
 }
 
+.admin-quick-score-pair {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .admin-quick-score-input {
-  width: 56px;
+  width: 64px;
   text-align: center;
 }
 
 .admin-quick-score-note {
   flex: 1 1 140px;
   min-width: 140px;
+}
+
+.admin-quick-score-submit {
+  margin-left: auto;
 }
 
 .admin-edit-panel {
@@ -1262,14 +1277,14 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   border: 1px solid #dbeafe;
   border-radius: 999px;
   background: #ffffff;
   box-shadow: var(--shadow-soft-rear);
   color: #1d4ed8;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: var(--weight-bold);
 }
 

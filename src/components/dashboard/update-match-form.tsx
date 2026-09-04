@@ -1,4 +1,5 @@
 import { deleteMatch, updateMatch } from "@/app/dashboard/[eventId]/matches/actions";
+import { SubmitButton } from "@/components/ui/submit-button";
 import type { EventDetailItem } from "@/lib/types/event";
 import type { MatchItem } from "@/lib/types/match";
 import type { EventPlayerItem } from "@/lib/types/player";
@@ -96,16 +97,22 @@ export function UpdateMatchForm({ event, match, participants }: UpdateMatchFormP
         </div>
 
         <div>
-          <button type="submit">경기 정보 저장</button>
+          <SubmitButton pendingLabel="저장 중...">경기 정보 저장</SubmitButton>
         </div>
         </form>
       </details>
 
-      <form action={deleteMatch} style={{ justifySelf: "start" }}>
+      <form action={deleteMatch} style={{ justifySelf: "start", paddingTop: 4, borderTop: "1px solid #f1f5f9" }}>
         <input type="hidden" name="eventId" value={event.id} />
         <input type="hidden" name="matchId" value={match.id} />
         <input type="hidden" name="publicUuid" value={event.public_uuid} />
-        <button type="submit">경기 삭제</button>
+        <SubmitButton
+          className="danger-button"
+          pendingLabel="삭제 중..."
+          confirmMessage={`${match.match_no}경기를 삭제할까요? 이 작업은 되돌릴 수 없습니다.`}
+        >
+          경기 삭제
+        </SubmitButton>
       </form>
     </div>
   );

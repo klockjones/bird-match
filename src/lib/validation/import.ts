@@ -15,7 +15,7 @@ export const matchImportRowSchema = z.object({
   group_name: z.string().trim().optional(),
   match_no: z.coerce.number().int().positive("match_no 컬럼이 필요합니다."),
   court_no: z.string().trim().optional(),
-  status: z.enum(["waiting", "ready", "playing", "done"]).default("waiting"),
+  status: z.enum(["waiting", "done"]).default("waiting"),
   scheduled_at: z.string().trim().optional(),
   sort_order: z.coerce.number().int().min(0).default(0),
   note: z.string().trim().optional(),

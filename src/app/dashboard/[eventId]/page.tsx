@@ -68,8 +68,8 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
             </article>
             <article className="event-launcher-card">
               <h3 className="event-launcher-title">경기 생성</h3>
-              <p className="event-launcher-copy">새 경기를 수기 등록할 때 바로 들어가는 진입 메뉴입니다.</p>
-              <Link className="event-launcher-link" href={`/dashboard/${detail.id}/matches`}>경기 생성으로 이동</Link>
+              <p className="event-launcher-copy">새 경기를 수기로 하나씩 등록할 때 바로 들어가는 전용 화면입니다.</p>
+              <Link className="event-launcher-link" href={`/dashboard/${detail.id}/matches/new`}>경기 생성으로 이동</Link>
             </article>
             <article className="event-launcher-card">
               <h3 className="event-launcher-title">업로드</h3>

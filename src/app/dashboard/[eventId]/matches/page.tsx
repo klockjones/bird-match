@@ -79,7 +79,12 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
           <span>운영자 메뉴로 이동</span>
         </div>
         <OperatorTopBar name={user.user_metadata?.name as string | undefined} />
-        <h1 style={{ margin: 0 }}>경기 관리</h1>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <h1 style={{ margin: 0 }}>경기 관리</h1>
+          <Link href={`/dashboard/${eventId}/matches/new`} className="primary-button" style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}>
+            + 새 경기 생성
+          </Link>
+        </div>
       </div>
 
       {query?.created ? <p className="admin-inline-message success">경기가 생성되었습니다.</p> : null}
