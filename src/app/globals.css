@@ -867,6 +867,11 @@ a:focus-visible {
   border-top: 1px solid #e2e8f0;
 }
 
+.admin-quick-score-form > select {
+  width: auto;
+  flex: 0 0 auto;
+}
+
 .admin-quick-score-pair {
   display: flex;
   align-items: center;
@@ -889,12 +894,15 @@ a:focus-visible {
 
 .admin-edit-panel {
   padding: 12px;
-  border: 1px solid #dbe3ef;
+  border: 1px solid #cbd5e1;
   border-radius: 14px;
-  background: #fbfdff;
+  background: #ffffff;
 }
 
 .admin-edit-panel > summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   cursor: pointer;
   list-style: none;
   font-weight: 700;
@@ -903,6 +911,17 @@ a:focus-visible {
 
 .admin-edit-panel > summary::-webkit-details-marker {
   display: none;
+}
+
+.admin-edit-panel > summary::before {
+  content: "▸";
+  display: inline-block;
+  font-size: 12px;
+  transition: transform 0.15s ease;
+}
+
+.admin-edit-panel[open] > summary::before {
+  transform: rotate(90deg);
 }
 
 .admin-edit-panel[open] > summary {

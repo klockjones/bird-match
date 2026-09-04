@@ -8,12 +8,13 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { EventDetailItem } from "@/lib/types/event";
 import type { MatchItem, MatchPlayerSlot } from "@/lib/types/match";
 import type { EventPlayerItem, PlayerItem } from "@/lib/types/player";
+import { formatDateTime } from "@/lib/utils/format-date";
 import { getMatchStatusLabel } from "@/lib/utils/status-labels";
 import { getTeamAccentStyle } from "@/lib/utils/team-accent";
 
 type EventMatchesPageProps = {
   params: Promise<{ eventId: string }>;
-  searchParams?: Promise<{ created?: string; updated?: string; deleted?: string; error?: string; t?: string }>;
+  searchParams?: Promise<{ created?: string; updated?: string; deleted?: string; error?: string; t?: string; court?: string }>;
 };
 
 type EventPlayerRow = {
@@ -71,6 +72,9 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
   })) as MatchItem[];
   const waitingCount = matchList.filter((match) => match.status !== "done").length;
   const doneCount = matchList.filter((match) => match.status === "done").length;
+  const courtOptions = [...new Set(matchList.map((match) => match.court_no).filter((court): court is string => Boolean(court)))];
+  const selectedCourt = query?.court && courtOptions.includes(query.court) ? query.court : null;
+  const visibleMatches = selectedCourt ? matchList.filter((match) => match.court_no === selectedCourt) : matchList;
   const successMessage = query?.created
     ? "경기가 생성되었습니다."
     : query?.updated
@@ -87,12 +91,7 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
           <span>운영자 메뉴로 이동</span>
         </div>
         <OperatorTopBar name={user.user_metadata?.name as string | undefined} />
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <h1 style={{ margin: 0 }}>경기 관리</h1>
-          <Link href={`/dashboard/${eventId}/matches/new`} className="primary-button" style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}>
-            + 새 경기 생성
-          </Link>
-        </div>
+        <h1 style={{ margin: 0 }}>경기 관리</h1>
       </div>
 
       {successMessage ? <Toast key={query?.t} message={successMessage} /> : null}
@@ -121,11 +120,22 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
           <p className="surface-copy" style={{ margin: 0 }}>요약을 먼저 보고, 필요한 경기만 열어서 수정하는 흐름으로 운영합니다.</p>
         </div>
 
-        {matchList.length === 0 ? (
-          <div className="empty-card">아직 등록된 경기가 없습니다.</div>
+        {courtOptions.length > 1 ? (
+          <div className="court-filter-row">
+            <a href="?" className={`court-filter-chip${selectedCourt ? "" : " active"}`}>전체</a>
+            {courtOptions.map((court) => (
+              <a key={court} href={`?court=${encodeURIComponent(court)}`} className={`court-filter-chip${selectedCourt === court ? " active" : ""}`}>
+                {court}
+              </a>
+            ))}
+          </div>
+        ) : null}
+
+        {visibleMatches.length === 0 ? (
+          <div className="empty-card">{matchList.length === 0 ? "아직 등록된 경기가 없습니다." : "선택한 코트에 경기가 없습니다."}</div>
         ) : (
           <div className="admin-stack">
-            {matchList.map((match) => {
+            {visibleMatches.map((match) => {
               const sideAPlayers = match.match_players.filter((slot) => slot.side === "A");
               const sideBPlayers = match.match_players.filter((slot) => slot.side === "B");
               const participantTeamMap = new Map(participants.map((participant) => [participant.player.id, participant.team]));
@@ -141,7 +151,7 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
                     </div>
                     <div className="admin-meta-stack">
                       <span className={`status-chip ${match.status === "done" ? "done" : "waiting"}`}>{getMatchStatusLabel(match.status)}</span>
-                      <div className="muted-text">예정: {match.scheduled_at ?? "미정"}</div>
+                      <div className="muted-text">예정: {formatDateTime(match.scheduled_at)}</div>
                     </div>
                   </div>
 

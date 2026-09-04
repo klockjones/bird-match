@@ -5,6 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { EventDetailItem } from "@/lib/types/event";
 import type { MatchItem, MatchPlayerSlot } from "@/lib/types/match";
 import type { PlayerItem } from "@/lib/types/player";
+import { formatDateOnly, formatDateTime, formatTimeOnly } from "@/lib/utils/format-date";
 import { getMatchStatusLabel } from "@/lib/utils/status-labels";
 import { getTeamAccentStyle } from "@/lib/utils/team-accent";
 
@@ -29,39 +30,6 @@ type EventPlayerTeamRow = {
   team: string | null;
   player_id: string;
 };
-
-function formatDate(value: string | null) {
-  if (!value) return "미정";
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
-
-function formatTimeOnly(value: string | null) {
-  if (!value) return "미정";
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-
-  return new Intl.DateTimeFormat("ko-KR", { hour: "2-digit", minute: "2-digit" }).format(date);
-}
-
-function formatDateOnly(value: string | null) {
-  if (!value) return "미정";
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-
-  return new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
-}
 
 function getSidePlayers(match: MatchItem, side: "A" | "B") {
   return match.match_players.filter((slot) => slot.side === side);
@@ -232,7 +200,7 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
                         {isNext ? "다음 경기" : getMatchStatusLabel(match.status)}
                       </span>
                       <div className="muted-text" style={{ marginTop: 8 }}>
-                        {sharedDate ? formatTimeOnly(match.scheduled_at) : formatDate(match.scheduled_at)}
+                        {sharedDate ? formatTimeOnly(match.scheduled_at) : formatDateTime(match.scheduled_at)}
                       </div>
                     </div>
                   </div>

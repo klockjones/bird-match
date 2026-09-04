@@ -98,7 +98,7 @@ export function UpdateMatchForm({ event, match, participants }: UpdateMatchFormP
         </div>
 
         <div>
-          <SubmitButton pendingLabel="저장 중...">경기 정보 저장</SubmitButton>
+          <SubmitButton className="primary-button" pendingLabel="저장 중...">경기 정보 저장</SubmitButton>
         </div>
         </form>
       </details>
