@@ -6,6 +6,8 @@ import type { EventPlayerItem } from "@/lib/types/player";
 type CreateMatchFormProps = {
   event: EventDetailItem;
   participants: EventPlayerItem[];
+  nextMatchNo: number;
+  nextSortOrder: number;
 };
 
 function playerLabel(player: EventPlayerItem) {
@@ -13,15 +15,10 @@ function playerLabel(player: EventPlayerItem) {
   return [player.player.name, player.player.level, team].filter(Boolean).join(" · ");
 }
 
-export function CreateMatchForm({ event, participants }: CreateMatchFormProps) {
+export function CreateMatchForm({ event, participants, nextMatchNo, nextSortOrder }: CreateMatchFormProps) {
   return (
     <form action={createMatch} style={{ display: "grid", gap: 12, padding: 16, border: "1px solid #cbd5e1", borderRadius: 12, background: "#ffffff" }}>
       <input type="hidden" name="eventId" value={event.id} />
-
-      <div>
-        <h2 style={{ margin: 0 }}>경기 생성</h2>
-        <p style={{ margin: "8px 0 0", color: "#475569" }}>이벤트 참가자를 기준으로 경기 순서와 코트를 등록합니다.</p>
-      </div>
 
       <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
         <label style={{ display: "grid", gap: 6 }}>
@@ -34,7 +31,7 @@ export function CreateMatchForm({ event, participants }: CreateMatchFormProps) {
         </label>
         <label style={{ display: "grid", gap: 6 }}>
           <span>경기 번호</span>
-          <input name="matchNo" type="number" min="1" required />
+          <input name="matchNo" type="number" min="1" defaultValue={nextMatchNo} required />
         </label>
         <label style={{ display: "grid", gap: 6 }}>
           <span>코트</span>
@@ -56,7 +53,7 @@ export function CreateMatchForm({ event, participants }: CreateMatchFormProps) {
         </label>
         <label style={{ display: "grid", gap: 6 }}>
           <span>정렬 순서</span>
-          <input name="sortOrder" type="number" min="0" defaultValue={0} required />
+          <input name="sortOrder" type="number" min="0" defaultValue={nextSortOrder} required />
         </label>
       </div>
 
@@ -71,7 +68,7 @@ export function CreateMatchForm({ event, participants }: CreateMatchFormProps) {
         <label style={{ display: "grid", gap: 6 }}>
           <span>A팀 선수 2</span>
           <select name="playerA2" defaultValue="">
-            <option value="">없음(단식)</option>
+            <option value="">없음 (단식 경기)</option>
             {participants.map((participant) => <option key={participant.id} value={participant.player.id}>{playerLabel(participant)}</option>)}
           </select>
         </label>
@@ -85,7 +82,7 @@ export function CreateMatchForm({ event, participants }: CreateMatchFormProps) {
         <label style={{ display: "grid", gap: 6 }}>
           <span>B팀 선수 2</span>
           <select name="playerB2" defaultValue="">
-            <option value="">없음(단식)</option>
+            <option value="">없음 (단식 경기)</option>
             {participants.map((participant) => <option key={participant.id} value={participant.player.id}>{playerLabel(participant)}</option>)}
           </select>
         </label>
