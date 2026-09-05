@@ -632,6 +632,17 @@ a:focus-visible {
   flex: 0 0 auto;
 }
 
+.team-dot {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  margin-right: 8px;
+  border-radius: 999px;
+  background: var(--team-dot-bg, #94a3b8);
+  box-shadow: 0 0 0 3px var(--team-dot-ring, rgba(148, 163, 184, 0.16));
+  vertical-align: middle;
+}
+
 .player-primary-text {
   font-size: clamp(15px, 1.9vw, 19px);
   font-weight: var(--weight-bold);
@@ -1025,6 +1036,45 @@ a:focus-visible {
   font-size: var(--text-sm);
 }
 
+.event-launcher-groups {
+  display: grid;
+  gap: 28px;
+}
+
+.event-launcher-group {
+  display: grid;
+  gap: 14px;
+}
+
+.event-launcher-group-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.event-launcher-group-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.event-launcher-group-title {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.event-launcher-group-copy {
+  margin: 2px 0 0;
+  color: #64748b;
+  font-size: var(--text-sm);
+}
+
 .event-launcher-grid {
   display: grid;
   gap: 12px;
@@ -1405,38 +1455,6 @@ a:focus-visible {
   background: transparent;
   color: #94a3b8;
   font-weight: 500;
-}
-
-.import-column-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
-.import-column-row-label {
-  color: #64748b;
-  font-size: 13px;
-  font-weight: 600;
-  margin-right: 4px;
-}
-
-.import-column-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 8px;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  color: #334155;
-  font-size: 12px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-}
-
-.import-column-chip.required {
-  border-color: #bfdbfe;
-  background: #eff6ff;
-  color: #1d4ed8;
 }
 
 .participant-note-card {

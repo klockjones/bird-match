@@ -6,6 +6,7 @@ import type { EventDetailItem } from "@/lib/types/event";
 import type { MatchItem, MatchPlayerSlot } from "@/lib/types/match";
 import type { PlayerItem } from "@/lib/types/player";
 import { formatDateTime } from "@/lib/utils/format-date";
+import { getMatchPlayerLabel } from "@/lib/utils/player-display";
 
 type PastMatchesPageProps = {
   params: Promise<{ eventId: string }>;
@@ -91,13 +92,13 @@ export default async function PastMatchesPage({ params }: PastMatchesPageProps) 
                   <div className="admin-side-card">
                     <span className="admin-side-label">A측{match.winner_side === "A" ? " · 승" : ""}</span>
                     {sideAPlayers.map((slot) => (
-                      <div key={slot.player.id} className="player-primary-text">{slot.player.name}</div>
+                      <div key={slot.player.id} className="player-primary-text">{getMatchPlayerLabel(slot.player)}</div>
                     ))}
                   </div>
                   <div className="admin-side-card">
                     <span className="admin-side-label">B측{match.winner_side === "B" ? " · 승" : ""}</span>
                     {sideBPlayers.map((slot) => (
-                      <div key={slot.player.id} className="player-primary-text">{slot.player.name}</div>
+                      <div key={slot.player.id} className="player-primary-text">{getMatchPlayerLabel(slot.player)}</div>
                     ))}
                   </div>
                 </div>

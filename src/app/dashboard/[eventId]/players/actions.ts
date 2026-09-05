@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { addEventPlayerSchema, createEventPlayerSchema } from "@/lib/validation/player";
+import { createEventPlayerSchema, removeEventPlayerSchema } from "@/lib/validation/player";
 
-export async function addEventPlayer(formData: FormData) {
+export async function removeEventPlayer(formData: FormData) {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -15,33 +15,18 @@ export async function addEventPlayer(formData: FormData) {
     redirect("/login");
   }
 
-  const parsed = addEventPlayerSchema.safeParse({
+  const parsed = removeEventPlayerSchema.safeParse({
     eventId: formData.get("eventId"),
-    playerId: formData.get("playerId"),
-    team: formData.get("team") ?? "",
-    seed: formData.get("seed"),
-    note: formData.get("note"),
+    participantId: formData.get("participantId"),
   });
 
   if (!parsed.success) {
-    const message = parsed.error.issues[0]?.message ?? "참가자 등록 입력값이 올바르지 않습니다.";
+    const message = parsed.error.issues[0]?.message ?? "참가자 삭제 입력값이 올바르지 않습니다.";
     redirect(`/dashboard/${formData.get("eventId")}/players?error=${encodeURIComponent(message)}`);
   }
 
   const values = parsed.data;
-  const seed = values.seed ? Number(values.seed) : null;
-
-  if (values.seed && Number.isNaN(seed)) {
-    redirect(`/dashboard/${values.eventId}/players?error=${encodeURIComponent("시드는 숫자로 입력해주세요.")}`);
-  }
-
-  const { error } = await supabase.from("event_players").insert({
-    event_id: values.eventId,
-    player_id: values.playerId,
-    team: values.team || null,
-    seed,
-    note: values.note || null,
-  });
+  const { error } = await supabase.from("event_players").delete().eq("id", values.participantId).eq("event_id", values.eventId);
 
   if (error) {
     redirect(`/dashboard/${values.eventId}/players?error=${encodeURIComponent(error.message)}`);
@@ -49,7 +34,7 @@ export async function addEventPlayer(formData: FormData) {
 
   revalidatePath(`/dashboard/${values.eventId}`);
   revalidatePath(`/dashboard/${values.eventId}/players`);
-  redirect(`/dashboard/${values.eventId}/players?added=1`);
+  redirect(`/dashboard/${values.eventId}/players?removed=1`);
 }
 
 export async function createEventPlayer(formData: FormData) {
@@ -78,19 +63,19 @@ export async function createEventPlayer(formData: FormData) {
 
   if (!parsed.success) {
     const message = parsed.error.issues[0]?.message ?? "참가자 등록 입력값이 올바르지 않습니다.";
-    redirect(`/dashboard/${formData.get("eventId")}/players?error=${encodeURIComponent(message)}`);
+    redirect(`/dashboard/${formData.get("eventId")}/players/new?error=${encodeURIComponent(message)}`);
   }
 
   const values = parsed.data;
   const seed = values.seed ? Number(values.seed) : null;
 
   if (values.seed && Number.isNaN(seed)) {
-    redirect(`/dashboard/${values.eventId}/players?error=${encodeURIComponent("시드는 숫자로 입력해주세요.")}`);
+    redirect(`/dashboard/${values.eventId}/players/new?error=${encodeURIComponent("시드는 숫자로 입력해주세요.")}`);
   }
 
   const { error } = await supabase.rpc("create_event_player", {
     target_event_id: values.eventId,
-    player_name: values.name,
+    player_name: values.name || null,
     player_gender: values.gender || null,
     player_level: values.level || null,
     player_phone: null,
@@ -104,10 +89,10 @@ export async function createEventPlayer(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/dashboard/${values.eventId}/players?error=${encodeURIComponent(error.message)}`);
+    redirect(`/dashboard/${values.eventId}/players/new?error=${encodeURIComponent(error.message)}`);
   }
 
   revalidatePath(`/dashboard/${values.eventId}`);
   revalidatePath(`/dashboard/${values.eventId}/players`);
-  redirect(`/dashboard/${values.eventId}/players?added=1`);
+  redirect(`/dashboard/${values.eventId}/players/new?added=1&t=${Date.now()}`);
 }

@@ -35,7 +35,7 @@ export async function createPlayer(formData: FormData) {
 
   const values = parsed.data;
   const { error } = await supabase.from("players").insert({
-    name: values.name,
+    name: values.name || null,
     gender: values.gender || null,
     level: values.level || null,
     phone: values.phone || null,

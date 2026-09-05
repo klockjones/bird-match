@@ -15,7 +15,8 @@ export function CreatePlayerForm({ nationalLevelOptions, regionalLevelOptions }:
 
       <label style={{ display: "grid", gap: 6 }}>
         <span>이름</span>
-        <input name="name" required placeholder="예: 김철수" />
+        <input name="name" placeholder="예: 김철수" />
+        <span style={{ color: "#94a3b8", fontSize: 13 }}>이름이 없다면 영문ID가 필요합니다.</span>
       </label>
 
       <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>

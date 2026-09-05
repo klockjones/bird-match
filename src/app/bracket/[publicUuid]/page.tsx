@@ -6,6 +6,7 @@ import type { EventDetailItem } from "@/lib/types/event";
 import type { MatchItem, MatchPlayerSlot } from "@/lib/types/match";
 import type { PlayerItem } from "@/lib/types/player";
 import { formatDateOnly, formatDateTime, formatTimeOnly } from "@/lib/utils/format-date";
+import { getMatchPlayerLabel } from "@/lib/utils/player-display";
 import { getMatchStatusLabel } from "@/lib/utils/status-labels";
 import { getTeamAccentStyle } from "@/lib/utils/team-accent";
 
@@ -215,7 +216,7 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
                           <div className="pair-group">
                           {getSidePlayers(match, "A").map((slot) => (
                             <div key={`queue-a-${match.id}-${slot.player.id}-${slot.position}`} className="pair-player-card">
-                              <strong className="player-primary-text pair-player-name">{slot.player.name}</strong>
+                              <strong className="player-primary-text pair-player-name">{getMatchPlayerLabel(slot.player)}</strong>
                               <span className="team-caption" style={getTeamAccentStyle(playerTeamMap.get(slot.player.id) ?? teamLabel1)}>{playerTeamMap.get(slot.player.id) ?? teamLabel1}</span>
                             </div>
                           ))}
@@ -235,7 +236,7 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
                           <div className="pair-group">
                           {getSidePlayers(match, "B").map((slot) => (
                             <div key={`queue-b-${match.id}-${slot.player.id}-${slot.position}`} className="pair-player-card">
-                              <strong className="player-primary-text pair-player-name">{slot.player.name}</strong>
+                              <strong className="player-primary-text pair-player-name">{getMatchPlayerLabel(slot.player)}</strong>
                               <span className="team-caption" style={getTeamAccentStyle(playerTeamMap.get(slot.player.id) ?? teamLabel2)}>{playerTeamMap.get(slot.player.id) ?? teamLabel2}</span>
                             </div>
                           ))}

@@ -19,29 +19,24 @@ export function CreateEventPlayerForm({ event, teamOptions, nationalLevelOptions
       <input type="hidden" name="eventId" value={event.id} />
 
       <div>
-        <h3 style={{ margin: 0 }}>새 선수 등록하며 추가</h3>
+        <h3 style={{ margin: 0 }}>참가 명단 추가 (수동입력)</h3>
         <p style={{ margin: "8px 0 0", color: "#475569" }}>선수 마스터에 없는 사람을 바로 등록하면서 이 일정에 추가합니다.</p>
       </div>
 
       <label style={{ display: "grid", gap: 6 }}>
         <span>이름</span>
-        <input name="name" required placeholder="예: 김철수" />
+        <input name="name" placeholder="예: 김철수" />
+        <span style={{ color: "#94a3b8", fontSize: 13 }}>이름이 없다면 영문ID가 필요합니다.</span>
       </label>
 
-      <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>성별/구분</span>
-          <select name="gender" defaultValue="">
-            <option value="">선택 안 함</option>
-            <option value="남">남</option>
-            <option value="여">여</option>
-          </select>
-        </label>
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>급수/레벨</span>
-          <input name="level" placeholder="예: A조" />
-        </label>
-      </div>
+      <label style={{ display: "grid", gap: 6 }}>
+        <span>성별/구분</span>
+        <select name="gender" defaultValue="">
+          <option value="">선택 안 함</option>
+          <option value="남">남</option>
+          <option value="여">여</option>
+        </select>
+      </label>
 
       <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
         <label style={{ display: "grid", gap: 6 }}>

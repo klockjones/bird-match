@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { OperatorTopBar } from "@/components/ui/operator-top-bar";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { EventListItem } from "@/lib/types/event";
+import { formatDateTime } from "@/lib/utils/format-date";
 import { getEventStatusLabel } from "@/lib/utils/status-labels";
 
 type DashboardPageProps = {
@@ -36,7 +37,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   }
 
   const publicCount = eventList.filter((event) => event.is_public).length;
-  const blueWhiteCount = eventList.filter((event) => event.event_type === "blue_white").length;
   const activeCount = eventList.filter((event) => event.status === "published").length;
   const closedCount = eventList.filter((event) => event.status === "closed").length;
 
@@ -82,10 +82,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           <span className="dashboard-summary-value">{publicCount}</span>
         </article>
         <article className="dashboard-summary-card">
-          <span className="dashboard-summary-label">청백전</span>
-          <span className="dashboard-summary-value">{blueWhiteCount}</span>
-        </article>
-        <article className="dashboard-summary-card">
           <span className="dashboard-summary-label">종료 일정</span>
           <span className="dashboard-summary-value">{closedCount}</span>
         </article>
@@ -94,7 +90,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       <section className="dashboard-section">
         <div className="dashboard-quick-actions">
           <Link href="/dashboard/new" className="dashboard-link-chip">새 일정 만들기</Link>
-          <Link href="/dashboard/players" className="dashboard-link-chip">선수 마스터 관리</Link>
         </div>
 
         <section className="dashboard-section">
@@ -120,7 +115,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                     </div>
                     <div style={{ textAlign: "right", color: "#475569" }}>
                       <div>{event.event_date ?? "날짜 미정"}</div>
-                      <div>{event.created_at}</div>
+                      <div>등록 {formatDateTime(event.created_at)}</div>
                     </div>
                   </div>
 

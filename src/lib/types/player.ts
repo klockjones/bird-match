@@ -1,6 +1,6 @@
 export type PlayerItem = {
   id: string;
-  name: string;
+  name: string | null;
   gender: string | null;
   level: string | null;
   phone: string | null;

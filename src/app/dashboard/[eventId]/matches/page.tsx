@@ -9,6 +9,7 @@ import type { EventDetailItem } from "@/lib/types/event";
 import type { MatchItem, MatchPlayerSlot } from "@/lib/types/match";
 import type { EventPlayerItem, PlayerItem } from "@/lib/types/player";
 import { formatDateTime } from "@/lib/utils/format-date";
+import { getMatchPlayerLabel } from "@/lib/utils/player-display";
 import { getMatchStatusLabel } from "@/lib/utils/status-labels";
 import { getTeamAccentStyle } from "@/lib/utils/team-accent";
 
@@ -165,7 +166,7 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
                       <span className="admin-side-label">A측 복식조</span>
                       {sideAPlayers.map((slot) => (
                         <div key={`match-a-${match.id}-${slot.player.id}-${slot.position}`} className="player-team-stack">
-                          <div className="player-primary-text">{slot.player.name}</div>
+                          <div className="player-primary-text">{getMatchPlayerLabel(slot.player)}</div>
                           {participantTeamMap.get(slot.player.id) ? <span className="team-caption" style={getTeamAccentStyle(participantTeamMap.get(slot.player.id))}>{participantTeamMap.get(slot.player.id)}</span> : null}
                         </div>
                       ))}
@@ -174,7 +175,7 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
                       <span className="admin-side-label">B측 복식조</span>
                       {sideBPlayers.map((slot) => (
                         <div key={`match-b-${match.id}-${slot.player.id}-${slot.position}`} className="player-team-stack">
-                          <div className="player-primary-text">{slot.player.name}</div>
+                          <div className="player-primary-text">{getMatchPlayerLabel(slot.player)}</div>
                           {participantTeamMap.get(slot.player.id) ? <span className="team-caption" style={getTeamAccentStyle(participantTeamMap.get(slot.player.id))}>{participantTeamMap.get(slot.player.id)}</span> : null}
                         </div>
                       ))}

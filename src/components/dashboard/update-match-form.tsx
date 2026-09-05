@@ -4,6 +4,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import type { EventDetailItem } from "@/lib/types/event";
 import type { MatchItem } from "@/lib/types/match";
 import type { EventPlayerItem } from "@/lib/types/player";
+import { getMatchPlayerLabel } from "@/lib/utils/player-display";
 
 type UpdateMatchFormProps = {
   event: EventDetailItem;
@@ -13,7 +14,7 @@ type UpdateMatchFormProps = {
 
 function playerLabel(player: EventPlayerItem) {
   const team = player.team ?? null;
-  return [player.player.name, player.player.level, team].filter(Boolean).join(" · ");
+  return [getMatchPlayerLabel(player.player), player.player.level, team].filter(Boolean).join(" · ");
 }
 
 function slotValue(match: MatchItem, side: "A" | "B", position: number) {

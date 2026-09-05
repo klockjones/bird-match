@@ -9,35 +9,18 @@ export function ImportPlayersForm({ eventId }: ImportPlayersFormProps) {
   return (
     <SpreadsheetImportForm
       title="명단 파일 업로드"
-      formats={["CSV", "XLSX", "XLS"]}
-      requiredColumns={[
-        { key: "name", label: "이름" },
-        { key: "gender", label: "성별" },
-        { key: "level", label: "급수" },
-      ]}
-      optionalColumns={[
-        { key: "phone", label: "연락처" },
-        { key: "memo", label: "메모" },
-        { key: "affiliation", label: "소속" },
-        { key: "english_id", label: "영문ID" },
-        { key: "national_level", label: "전국급수" },
-        { key: "regional_level", label: "지역급수" },
-        { key: "team", label: "팀" },
-        { key: "seed", label: "시드" },
-      ]}
-      templateUrl="/templates/roster-template.csv"
+      templateUrl="/templates/roster-template.xlsx"
+      requiredColumnsNote="템플릿의 색칠된 컬럼(이름, LDAP) 중 하나는 필수입니다. 둘 다 채워도 됩니다."
       submitLabel="미리보기 확인 후 명단 업로드"
       action={importPlayersCsv}
       hiddenFields={[{ name: "eventId", value: eventId }]}
       columnRules={[
-        { label: "name", aliases: ["name", "Name"] },
-        { label: "gender", aliases: ["gender", "Gender"] },
-        { label: "level", aliases: ["level", "Level"] },
+        { label: "이름 또는 LDAP", aliases: ["name", "Name", "이름", "english_id", "englishId", "EnglishId", "LDAP", "영문ID"] },
+        { label: "gender", aliases: ["gender", "Gender", "성별"] },
       ]}
       summaryItems={[
-        { label: "감지된 선수 행", keys: ["name", "Name"] },
-        { label: "팀 배정 행", keys: ["team", "Team"] },
-        { label: "시드 입력 행", keys: ["seed", "Seed"] },
+        { label: "감지된 참가자 행", keys: ["name", "Name", "이름", "english_id", "englishId", "EnglishId", "LDAP", "영문ID"] },
+        { label: "지역급수 입력 행", keys: ["regional_level", "regionalLevel", "지역급수", "지역 급수"] },
       ]}
     />
   );

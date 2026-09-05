@@ -2,6 +2,7 @@ import { createMatch } from "@/app/dashboard/[eventId]/matches/actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import type { EventDetailItem } from "@/lib/types/event";
 import type { EventPlayerItem } from "@/lib/types/player";
+import { getMatchPlayerLabel } from "@/lib/utils/player-display";
 
 type CreateMatchFormProps = {
   event: EventDetailItem;
@@ -12,7 +13,7 @@ type CreateMatchFormProps = {
 
 function playerLabel(player: EventPlayerItem) {
   const team = player.team ?? null;
-  return [player.player.name, player.player.level, team].filter(Boolean).join(" · ");
+  return [getMatchPlayerLabel(player.player), player.player.level, team].filter(Boolean).join(" · ");
 }
 
 export function CreateMatchForm({ event, participants, nextMatchNo, nextSortOrder }: CreateMatchFormProps) {

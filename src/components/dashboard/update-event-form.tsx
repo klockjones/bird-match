@@ -12,7 +12,7 @@ export function UpdateEventForm({ event }: UpdateEventFormProps) {
 
       <div>
         <h2 style={{ margin: 0 }}>일정 기본 설정</h2>
-        <p style={{ margin: "8px 0 0", color: "#475569" }}>공개 여부, 상태, 청백전 여부를 여기서 관리합니다.</p>
+        <p style={{ margin: "8px 0 0", color: "#475569" }}>일정명, 날짜, 상태, 공개 여부를 여기서 관리합니다.</p>
       </div>
 
       <label style={{ display: "grid", gap: 6 }}>
@@ -52,17 +52,8 @@ export function UpdateEventForm({ event }: UpdateEventFormProps) {
         <input name="scoringRule" required defaultValue={event.scoring_rule} />
       </label>
 
-      <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>팀 이름 1</span>
-          <input name="teamLabel1" defaultValue={event.team_label_1 ?? ""} placeholder="예: 어피치" />
-        </label>
-
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>팀 이름 2</span>
-          <input name="teamLabel2" defaultValue={event.team_label_2 ?? ""} placeholder="예: 라이언" />
-        </label>
-      </div>
+      <input type="hidden" name="teamLabel1" value={event.team_label_1 ?? ""} />
+      <input type="hidden" name="teamLabel2" value={event.team_label_2 ?? ""} />
 
       <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
         <input name="isPublic" type="checkbox" value="true" defaultChecked={event.is_public} />

@@ -4,6 +4,7 @@ import { CreatePlayerForm } from "@/components/dashboard/create-player-form";
 import { OperatorTopBar } from "@/components/ui/operator-top-bar";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { PlayerItem } from "@/lib/types/player";
+import { getMatchPlayerLabel } from "@/lib/utils/player-display";
 
 type PlayersPageProps = {
   searchParams?: Promise<{
@@ -34,8 +35,11 @@ export default async function PlayersPage({ searchParams }: PlayersPageProps) {
 
   return (
     <main className="admin-page-shell">
-      <div>
-        <Link href="/dashboard">← 대시보드로 돌아가기</Link>
+      <div className="admin-hero">
+        <div className="operator-menu-link-row">
+          <Link href="/dashboard?home=1" className="operator-menu-arrow" aria-label="일정 목록으로 이동">←</Link>
+          <span>일정 목록으로 이동</span>
+        </div>
         <OperatorTopBar name={user.user_metadata?.name as string | undefined} />
         <h1 style={{ marginBottom: 8 }}>선수 마스터 관리</h1>
         <p style={{ margin: 0, color: "#475569" }}>모든 일정에서 재사용할 기본 선수 명단입니다.</p>
@@ -61,11 +65,9 @@ export default async function PlayersPage({ searchParams }: PlayersPageProps) {
               <article key={player.id} style={{ padding: 16, border: "1px solid #cbd5e1", borderRadius: 12, background: "#ffffff" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                   <div>
-                    <h3 style={{ margin: 0 }}>{player.name}</h3>
+                    <h3 style={{ margin: 0 }}>{getMatchPlayerLabel(player)}</h3>
                     <p style={{ margin: "8px 0 0", color: "#475569" }}>
-                      {player.gender ?? "구분 미정"} · {player.level ?? "레벨 미정"}
-                      {player.affiliation ? ` · ${player.affiliation}` : ""}
-                      {player.english_id ? ` · ${player.english_id}` : ""}
+                      {player.gender ?? "구분 미정"}
                     </p>
                     <p style={{ margin: "4px 0 0", color: "#475569" }}>
                       전국급수: {player.national_level ?? "미지정"} · 지역급수: {player.regional_level ?? "미지정"}

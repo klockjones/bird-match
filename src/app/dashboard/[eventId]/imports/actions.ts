@@ -8,9 +8,9 @@ import { matchImportRowSchema, playerImportRowSchema } from "@/lib/validation/im
 
 type SpreadsheetRow = Record<string, string>;
 
-type EventPlayerNameRow = {
+type EventPlayerIdentityRow = {
   player_id: string;
-  players: { name: string } | { name: string }[] | null;
+  players: { name: string | null; english_id: string | null } | Array<{ name: string | null; english_id: string | null }> | null;
 };
 
 type MatchImportSlot = {
@@ -24,6 +24,13 @@ type ImportErrorRow = {
   message: string;
   row?: unknown;
 };
+
+// redirect()/notFound() work by throwing — a catch-all handler must let this
+// internal signal pass through, or it swallows every redirect (including the
+// success path) and surfaces "NEXT_REDIRECT" as if it were a real error.
+function isNextRedirectError(error: unknown): boolean {
+  return Boolean(error && typeof error === "object" && "digest" in error && typeof error.digest === "string" && error.digest.startsWith("NEXT_REDIRECT"));
+}
 
 async function requireUser() {
   const supabase = await createSupabaseServerClient();
@@ -112,7 +119,7 @@ async function logImportFailureAndRedirect({
   });
 
   redirect(
-    `/dashboard/${eventId}/imports?error=${encodeURIComponent(summary)}${importId ? `&errorImport=${importId}` : ""}`,
+    `/dashboard/${eventId}/imports/${importType}?error=${encodeURIComponent(summary)}${importId ? `&errorImport=${importId}` : ""}`,
   );
 }
 
@@ -142,17 +149,17 @@ export async function importPlayersCsv(formData: FormData) {
     }
 
     const normalizedRows = rows.map((row: SpreadsheetRow) => ({
-      name: row.name ?? row.Name ?? "",
-      gender: row.gender ?? row.Gender ?? "",
-      level: row.level ?? row.Level ?? "",
-      phone: row.phone ?? row.Phone ?? "",
-      memo: row.memo ?? row.Memo ?? "",
-      affiliation: row.affiliation ?? row.Affiliation ?? "",
-      english_id: row.english_id ?? row.englishId ?? row.EnglishId ?? "",
-      national_level: row.national_level ?? row.nationalLevel ?? row.NationalLevel ?? "",
-      regional_level: row.regional_level ?? row.regionalLevel ?? row.RegionalLevel ?? "",
-      team: row.team ?? row.Team ?? "",
-      seed: row.seed ?? row.Seed ?? "",
+      name: row.name ?? row.Name ?? row["이름"] ?? "",
+      gender: row.gender ?? row.Gender ?? row["성별"] ?? "",
+      level: row.level ?? row.Level ?? row["급수"] ?? "",
+      phone: row.phone ?? row.Phone ?? row["연락처"] ?? "",
+      memo: row.memo ?? row.Memo ?? row["메모"] ?? "",
+      affiliation: row.affiliation ?? row.Affiliation ?? row["소속"] ?? "",
+      english_id: row.english_id ?? row.englishId ?? row.EnglishId ?? row["LDAP"] ?? row["영문ID"] ?? "",
+      national_level: row.national_level ?? row.nationalLevel ?? row.NationalLevel ?? row["전국급수"] ?? row["전국 급수"] ?? "",
+      regional_level: row.regional_level ?? row.regionalLevel ?? row.RegionalLevel ?? row["지역급수"] ?? row["지역 급수"] ?? "",
+      team: row.team ?? row.Team ?? row["팀"] ?? "",
+      seed: row.seed ?? row.Seed ?? row["시드"] ?? "",
     }));
 
     const parseResults = normalizedRows.map((row) => playerImportRowSchema.safeParse(row));
@@ -180,26 +187,49 @@ export async function importPlayersCsv(formData: FormData) {
     const validRows = parseResults
       .map((result) => (result.success ? result.data : null))
       .filter((row): row is NonNullable<typeof row> => Boolean(row));
-    const names = [...new Set(validRows.map((row) => row.name))];
 
-    const { data: existingPlayers, error: playersError } = await supabase
-      .from("players")
-      .select("id,name")
-      .in("name", names);
+    // Identity is LDAP(english_id) when present, otherwise name — some events
+    // only collect 소속+LDAP with no name at all.
+    const ldaps = [...new Set(validRows.map((row) => row.english_id).filter((value): value is string => Boolean(value)))];
+    const names = [...new Set(validRows.map((row) => row.name).filter((value): value is string => Boolean(value)))];
 
-    if (playersError) {
-      redirect(`/dashboard/${eventId}/imports?error=${encodeURIComponent(playersError.message)}`);
+    const [{ data: existingByLdap, error: byLdapError }, { data: existingByName, error: byNameError }] = await Promise.all([
+      ldaps.length > 0
+        ? supabase.from("players").select("id,name,english_id").in("english_id", ldaps)
+        : Promise.resolve({ data: [] as Array<{ id: string; name: string | null; english_id: string | null }>, error: null }),
+      names.length > 0
+        ? supabase.from("players").select("id,name,english_id").in("name", names)
+        : Promise.resolve({ data: [] as Array<{ id: string; name: string | null; english_id: string | null }>, error: null }),
+    ]);
+
+    if (byLdapError) {
+      redirect(`/dashboard/${eventId}/imports/players?error=${encodeURIComponent(byLdapError.message)}`);
+    }
+    if (byNameError) {
+      redirect(`/dashboard/${eventId}/imports/players?error=${encodeURIComponent(byNameError.message)}`);
     }
 
-    const playerByName = new Map((existingPlayers ?? []).map((player) => [player.name, player.id]));
-    const missingPlayers = validRows.filter((row) => !playerByName.has(row.name));
+    const playerByLdap = new Map<string, string>();
+    const playerByName = new Map<string, string>();
+    [...(existingByLdap ?? []), ...(existingByName ?? [])].forEach((player) => {
+      if (player.english_id) playerByLdap.set(player.english_id, player.id);
+      if (player.name) playerByName.set(player.name, player.id);
+    });
+
+    function findPlayerId(row: (typeof validRows)[number]) {
+      if (row.english_id && playerByLdap.has(row.english_id)) return playerByLdap.get(row.english_id);
+      if (row.name && playerByName.has(row.name)) return playerByName.get(row.name);
+      return undefined;
+    }
+
+    const missingPlayers = validRows.filter((row) => !findPlayerId(row));
 
     if (missingPlayers.length > 0) {
       const { data: insertedPlayers, error: insertPlayersError } = await supabase
         .from("players")
         .insert(
           missingPlayers.map((row) => ({
-            name: row.name,
+            name: row.name || null,
             gender: row.gender || null,
             level: row.level || null,
             phone: row.phone || null,
@@ -211,13 +241,16 @@ export async function importPlayersCsv(formData: FormData) {
             is_active: true,
           })),
         )
-        .select("id,name");
+        .select("id,name,english_id");
 
       if (insertPlayersError) {
-        redirect(`/dashboard/${eventId}/imports?error=${encodeURIComponent(insertPlayersError.message)}`);
+        redirect(`/dashboard/${eventId}/imports/players?error=${encodeURIComponent(insertPlayersError.message)}`);
       }
 
-      (insertedPlayers ?? []).forEach((player) => playerByName.set(player.name, player.id));
+      (insertedPlayers ?? []).forEach((player) => {
+        if (player.english_id) playerByLdap.set(player.english_id, player.id);
+        if (player.name) playerByName.set(player.name, player.id);
+      });
     }
 
     const { data: existingEventPlayers, error: eventPlayersError } = await supabase
@@ -226,13 +259,13 @@ export async function importPlayersCsv(formData: FormData) {
       .eq("event_id", eventId);
 
     if (eventPlayersError) {
-      redirect(`/dashboard/${eventId}/imports?error=${encodeURIComponent(eventPlayersError.message)}`);
+      redirect(`/dashboard/${eventId}/imports/players?error=${encodeURIComponent(eventPlayersError.message)}`);
     }
 
     const existingIds = new Set((existingEventPlayers ?? []).map((row) => row.player_id));
     const toInsert = validRows
       .map((row) => {
-        const playerId = playerByName.get(row.name);
+        const playerId = findPlayerId(row);
         if (!playerId || existingIds.has(playerId)) return null;
         const seed = row.seed ? Number(row.seed) : null;
         return {
@@ -248,7 +281,7 @@ export async function importPlayersCsv(formData: FormData) {
     if (toInsert.length > 0) {
       const { error: insertEventPlayersError } = await supabase.from("event_players").insert(toInsert);
       if (insertEventPlayersError) {
-        redirect(`/dashboard/${eventId}/imports?error=${encodeURIComponent(insertEventPlayersError.message)}`);
+        redirect(`/dashboard/${eventId}/imports/players?error=${encodeURIComponent(insertEventPlayersError.message)}`);
       }
     }
 
@@ -269,11 +302,12 @@ export async function importPlayersCsv(formData: FormData) {
 
     revalidatePath(`/dashboard/${eventId}`);
     revalidatePath(`/dashboard/${eventId}/players`);
-    revalidatePath(`/dashboard/${eventId}/imports`);
-    redirect(`/dashboard/${eventId}/imports?playerImported=${successCount}`);
+    revalidatePath(`/dashboard/${eventId}/imports/players`);
+    redirect(`/dashboard/${eventId}/imports/players?playerImported=${successCount}`);
   } catch (error) {
+    if (isNextRedirectError(error)) throw error;
     const message = error instanceof Error ? error.message : "명단 업로드에 실패했습니다.";
-    redirect(`/dashboard/${eventId}/imports?error=${encodeURIComponent(message)}`);
+    redirect(`/dashboard/${eventId}/imports/players?error=${encodeURIComponent(message)}`);
   }
 }
 
@@ -352,17 +386,20 @@ export async function importMatchesCsv(formData: FormData) {
 
     const { data: eventPlayers, error: eventPlayersError } = await supabase
       .from("event_players")
-      .select("player_id,players(name)")
+      .select("player_id,players(name,english_id)")
       .eq("event_id", eventId);
 
     if (eventPlayersError) {
-      redirect(`/dashboard/${eventId}/imports?error=${encodeURIComponent(eventPlayersError.message)}`);
+      redirect(`/dashboard/${eventId}/imports/matches?error=${encodeURIComponent(eventPlayersError.message)}`);
     }
 
+    // Match by name or LDAP(english_id) — some events only collect one of the two.
     const participantMap = new Map<string, string>();
-    ((eventPlayers ?? []) as EventPlayerNameRow[]).forEach((row) => {
-      const name = Array.isArray(row.players) ? row.players[0]?.name : row.players?.name;
-      if (name) participantMap.set(name, row.player_id);
+    ((eventPlayers ?? []) as EventPlayerIdentityRow[]).forEach((row) => {
+      const player = Array.isArray(row.players) ? row.players[0] : row.players;
+      if (!player) return;
+      if (player.english_id) participantMap.set(player.english_id, row.player_id);
+      if (player.name) participantMap.set(player.name, row.player_id);
     });
 
     const missingNames = participantNames.filter((name) => !participantMap.has(name));
@@ -421,7 +458,7 @@ export async function importMatchesCsv(formData: FormData) {
         .single();
 
       if (matchError || !match) {
-        redirect(`/dashboard/${eventId}/imports?error=${encodeURIComponent(matchError?.message ?? `경기 ${row.match_no} 생성 실패`)}`);
+        redirect(`/dashboard/${eventId}/imports/matches?error=${encodeURIComponent(matchError?.message ?? `경기 ${row.match_no} 생성 실패`)}`);
       }
 
       const slots = [
@@ -442,7 +479,7 @@ export async function importMatchesCsv(formData: FormData) {
 
       if (slotError) {
         await supabase.from("matches").delete().eq("id", match.id);
-        redirect(`/dashboard/${eventId}/imports?error=${encodeURIComponent(slotError.message)}`);
+        redirect(`/dashboard/${eventId}/imports/matches?error=${encodeURIComponent(slotError.message)}`);
       }
 
       successCount += 1;
@@ -462,11 +499,12 @@ export async function importMatchesCsv(formData: FormData) {
 
     revalidatePath(`/dashboard/${eventId}`);
     revalidatePath(`/dashboard/${eventId}/matches`);
-    revalidatePath(`/dashboard/${eventId}/imports`);
+    revalidatePath(`/dashboard/${eventId}/imports/matches`);
     revalidatePath(`/bracket/${String(formData.get("publicUuid") ?? "")}`);
-    redirect(`/dashboard/${eventId}/imports?matchImported=${successCount}`);
+    redirect(`/dashboard/${eventId}/imports/matches?matchImported=${successCount}`);
   } catch (error) {
+    if (isNextRedirectError(error)) throw error;
     const message = error instanceof Error ? error.message : "대진표 업로드에 실패했습니다.";
-    redirect(`/dashboard/${eventId}/imports?error=${encodeURIComponent(message)}`);
+    redirect(`/dashboard/${eventId}/imports/matches?error=${encodeURIComponent(message)}`);
   }
 }

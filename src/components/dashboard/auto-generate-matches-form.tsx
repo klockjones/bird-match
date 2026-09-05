@@ -5,6 +5,7 @@ import { createGeneratedMatches } from "@/app/dashboard/[eventId]/matches/action
 import { SubmitButton } from "@/components/ui/submit-button";
 import type { EventDetailItem } from "@/lib/types/event";
 import type { EventPlayerItem } from "@/lib/types/player";
+import { getMatchPlayerLabel } from "@/lib/utils/player-display";
 
 type AutoGenerateMatchesFormProps = {
   event: EventDetailItem;
@@ -135,7 +136,7 @@ function generateBracket(
 }
 
 function playerLabel(item: EventPlayerItem) {
-  return [item.player.name, item.player.regional_level].filter(Boolean).join(" · ");
+  return [getMatchPlayerLabel(item.player), item.player.regional_level].filter(Boolean).join(" · ");
 }
 
 export function AutoGenerateMatchesForm({ event, participants, nextMatchNo, nextSortOrder }: AutoGenerateMatchesFormProps) {
@@ -188,7 +189,7 @@ export function AutoGenerateMatchesForm({ event, participants, nextMatchNo, next
 
         {excluded.length > 0 ? (
           <p className="admin-inline-message error" style={{ margin: 0 }}>
-            제외된 참가자 ({excluded.length}명): {excluded.map((item) => item.player.name).join(", ")} — 성별 또는 지역급수 정보가 없습니다.
+            제외된 참가자 ({excluded.length}명): {excluded.map((item) => getMatchPlayerLabel(item.player)).join(", ")} — 성별 또는 지역급수 정보가 없습니다.
           </p>
         ) : null}
 
