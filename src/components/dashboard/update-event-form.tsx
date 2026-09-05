@@ -11,17 +11,17 @@ export function UpdateEventForm({ event }: UpdateEventFormProps) {
       <input type="hidden" name="eventId" value={event.id} />
 
       <div>
-        <h2 style={{ margin: 0 }}>이벤트 기본 설정</h2>
+        <h2 style={{ margin: 0 }}>일정 기본 설정</h2>
         <p style={{ margin: "8px 0 0", color: "#475569" }}>공개 여부, 상태, 청백전 여부를 여기서 관리합니다.</p>
       </div>
 
       <label style={{ display: "grid", gap: 6 }}>
-        <span>이벤트명</span>
+        <span>일정명</span>
         <input name="title" required defaultValue={event.title} />
       </label>
 
       <label style={{ display: "grid", gap: 6 }}>
-        <span>이벤트 유형</span>
+        <span>일정 유형</span>
         <select name="eventType" defaultValue={event.event_type}>
           <option value="general">일반전</option>
           <option value="blue_white">청백전</option>
@@ -38,7 +38,7 @@ export function UpdateEventForm({ event }: UpdateEventFormProps) {
         </label>
 
       <label style={{ display: "grid", gap: 6 }}>
-        <span>이벤트 날짜</span>
+        <span>일정 날짜</span>
         <input name="eventDate" type="date" defaultValue={event.event_date ?? ""} />
       </label>
 

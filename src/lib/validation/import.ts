@@ -6,6 +6,10 @@ export const playerImportRowSchema = z.object({
   level: z.string().trim().optional(),
   phone: z.string().trim().optional(),
   memo: z.string().trim().optional(),
+  affiliation: z.string().trim().max(50).optional(),
+  english_id: z.string().trim().max(50).optional(),
+  national_level: z.string().trim().max(20).optional(),
+  regional_level: z.string().trim().max(20).optional(),
   team: z.string().trim().max(30).optional(),
   seed: z.string().trim().optional(),
 });

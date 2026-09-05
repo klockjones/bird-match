@@ -5,9 +5,11 @@ import type { EventDetailItem } from "@/lib/types/event";
 type CreateEventPlayerFormProps = {
   event: EventDetailItem;
   teamOptions: string[];
+  nationalLevelOptions: string[];
+  regionalLevelOptions: string[];
 };
 
-export function CreateEventPlayerForm({ event, teamOptions }: CreateEventPlayerFormProps) {
+export function CreateEventPlayerForm({ event, teamOptions, nationalLevelOptions, regionalLevelOptions }: CreateEventPlayerFormProps) {
   const teamLabel1 = event.team_label_1 ?? "팀 1";
   const teamLabel2 = event.team_label_2 ?? "팀 2";
   const teamSuggestions = [...new Set([event.team_label_1, event.team_label_2, ...teamOptions].filter((value): value is string => Boolean(value)))];
@@ -18,7 +20,7 @@ export function CreateEventPlayerForm({ event, teamOptions }: CreateEventPlayerF
 
       <div>
         <h3 style={{ margin: 0 }}>새 선수 등록하며 추가</h3>
-        <p style={{ margin: "8px 0 0", color: "#475569" }}>선수 마스터에 없는 사람을 바로 등록하면서 이 이벤트에 추가합니다.</p>
+        <p style={{ margin: "8px 0 0", color: "#475569" }}>선수 마스터에 없는 사람을 바로 등록하면서 이 일정에 추가합니다.</p>
       </div>
 
       <label style={{ display: "grid", gap: 6 }}>
@@ -38,6 +40,34 @@ export function CreateEventPlayerForm({ event, teamOptions }: CreateEventPlayerF
         <label style={{ display: "grid", gap: 6 }}>
           <span>급수/레벨</span>
           <input name="level" placeholder="예: A조" />
+        </label>
+      </div>
+
+      <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>소속</span>
+          <input name="affiliation" placeholder="예: 강남구청 배드민턴클럽" />
+        </label>
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>영문ID</span>
+          <input name="englishId" placeholder="예: cliff.park" />
+        </label>
+      </div>
+
+      <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>전국급수</span>
+          <input name="nationalLevel" list="national-level-options-create" placeholder="예: A, B, C, D, E" />
+          <datalist id="national-level-options-create">
+            {nationalLevelOptions.map((option) => <option key={option} value={option} />)}
+          </datalist>
+        </label>
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>지역급수</span>
+          <input name="regionalLevel" list="regional-level-options-create" placeholder="예: A, B, C, D, E" />
+          <datalist id="regional-level-options-create">
+            {regionalLevelOptions.map((option) => <option key={option} value={option} />)}
+          </datalist>
         </label>
       </div>
 

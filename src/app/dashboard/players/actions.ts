@@ -21,6 +21,10 @@ export async function createPlayer(formData: FormData) {
     level: formData.get("level"),
     phone: formData.get("phone"),
     memo: formData.get("memo"),
+    affiliation: formData.get("affiliation"),
+    englishId: formData.get("englishId"),
+    nationalLevel: formData.get("nationalLevel"),
+    regionalLevel: formData.get("regionalLevel"),
     isActive: formData.get("isActive") ?? "false",
   });
 
@@ -36,6 +40,10 @@ export async function createPlayer(formData: FormData) {
     level: values.level || null,
     phone: values.phone || null,
     memo: values.memo || null,
+    affiliation: values.affiliation || null,
+    english_id: values.englishId || null,
+    national_level: values.nationalLevel || null,
+    regional_level: values.regionalLevel || null,
     is_active: values.isActive === "true",
   });
 

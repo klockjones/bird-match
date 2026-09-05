@@ -56,7 +56,7 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
     supabase
       .from("matches")
       .select(
-        "id,event_id,round_name,group_name,match_no,court_no,status,team1_score,team2_score,winner_side,scheduled_at,sort_order,note,created_at,updated_at,match_players(side,position,players(id,name,gender,level,phone,memo,is_active,created_at))",
+        "id,event_id,round_name,group_name,match_no,court_no,status,team1_score,team2_score,winner_side,scheduled_at,sort_order,note,created_at,updated_at,match_players(side,position,players(id,name,gender,level,phone,memo,affiliation,english_id,national_level,regional_level,is_active,created_at))",
       )
       .eq("event_id", detail.id)
       .order("sort_order", { ascending: true })

@@ -25,10 +25,12 @@ export default async function PlayersPage({ searchParams }: PlayersPageProps) {
   const params = await searchParams;
   const { data: players, error } = await supabase
     .from("players")
-    .select("id,name,gender,level,phone,memo,is_active,created_at")
+    .select("id,name,gender,level,phone,memo,affiliation,english_id,national_level,regional_level,is_active,created_at")
     .order("created_at", { ascending: false });
 
   const playerList = (players ?? []) as PlayerItem[];
+  const nationalLevelOptions = [...new Set(playerList.map((player) => player.national_level).filter((value): value is string => Boolean(value)))];
+  const regionalLevelOptions = [...new Set(playerList.map((player) => player.regional_level).filter((value): value is string => Boolean(value)))];
 
   return (
     <main className="admin-page-shell">
@@ -36,19 +38,19 @@ export default async function PlayersPage({ searchParams }: PlayersPageProps) {
         <Link href="/dashboard">← 대시보드로 돌아가기</Link>
         <OperatorTopBar name={user.user_metadata?.name as string | undefined} />
         <h1 style={{ marginBottom: 8 }}>선수 마스터 관리</h1>
-        <p style={{ margin: 0, color: "#475569" }}>모든 이벤트에서 재사용할 기본 선수 명단입니다.</p>
+        <p style={{ margin: 0, color: "#475569" }}>모든 일정에서 재사용할 기본 선수 명단입니다.</p>
       </div>
 
       {params?.created ? <p style={{ color: "#166534" }}>선수가 등록되었습니다.</p> : null}
       {params?.error ? <p style={{ color: "#b91c1c" }}>{params.error}</p> : null}
       {error ? <p style={{ color: "#b91c1c" }}>선수 목록을 불러오지 못했습니다: {error.message}</p> : null}
 
-      <CreatePlayerForm />
+      <CreatePlayerForm nationalLevelOptions={nationalLevelOptions} regionalLevelOptions={regionalLevelOptions} />
 
       <section style={{ display: "grid", gap: 12 }}>
         <div>
           <h2 style={{ marginBottom: 8 }}>등록된 선수</h2>
-          <p style={{ margin: 0, color: "#475569" }}>이벤트에 참가자를 붙이기 전 기준 데이터입니다.</p>
+          <p style={{ margin: 0, color: "#475569" }}>일정에 참가자를 붙이기 전 기준 데이터입니다.</p>
         </div>
 
         {playerList.length === 0 ? (
@@ -62,6 +64,11 @@ export default async function PlayersPage({ searchParams }: PlayersPageProps) {
                     <h3 style={{ margin: 0 }}>{player.name}</h3>
                     <p style={{ margin: "8px 0 0", color: "#475569" }}>
                       {player.gender ?? "구분 미정"} · {player.level ?? "레벨 미정"}
+                      {player.affiliation ? ` · ${player.affiliation}` : ""}
+                      {player.english_id ? ` · ${player.english_id}` : ""}
+                    </p>
+                    <p style={{ margin: "4px 0 0", color: "#475569" }}>
+                      전국급수: {player.national_level ?? "미지정"} · 지역급수: {player.regional_level ?? "미지정"}
                     </p>
                   </div>
                   <div style={{ textAlign: "right", color: "#475569" }}>

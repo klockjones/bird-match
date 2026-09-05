@@ -147,6 +147,10 @@ export async function importPlayersCsv(formData: FormData) {
       level: row.level ?? row.Level ?? "",
       phone: row.phone ?? row.Phone ?? "",
       memo: row.memo ?? row.Memo ?? "",
+      affiliation: row.affiliation ?? row.Affiliation ?? "",
+      english_id: row.english_id ?? row.englishId ?? row.EnglishId ?? "",
+      national_level: row.national_level ?? row.nationalLevel ?? row.NationalLevel ?? "",
+      regional_level: row.regional_level ?? row.regionalLevel ?? row.RegionalLevel ?? "",
       team: row.team ?? row.Team ?? "",
       seed: row.seed ?? row.Seed ?? "",
     }));
@@ -200,6 +204,10 @@ export async function importPlayersCsv(formData: FormData) {
             level: row.level || null,
             phone: row.phone || null,
             memo: row.memo || null,
+            affiliation: row.affiliation || null,
+            english_id: row.english_id || null,
+            national_level: row.national_level || null,
+            regional_level: row.regional_level || null,
             is_active: true,
           })),
         )
@@ -366,8 +374,8 @@ export async function importMatchesCsv(formData: FormData) {
         fileName,
         rowCount: validRows.length,
         uploadedBy: user.id,
-        summary: `이벤트 참가자에 없는 선수명: ${missingNames[0]}`,
-        errors: [{ rowNumber: 0, message: `이벤트 참가자에 없는 선수명: ${missingNames[0]}` }],
+        summary: `일정 참가자에 없는 선수명: ${missingNames[0]}`,
+        errors: [{ rowNumber: 0, message: `일정 참가자에 없는 선수명: ${missingNames[0]}` }],
         rows: validRows,
       });
     }

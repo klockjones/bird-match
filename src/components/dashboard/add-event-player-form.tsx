@@ -37,7 +37,7 @@ export function AddEventPlayerForm({ event, players, teamOptions }: AddEventPlay
           ))}
         </select>
         {players.length === 0 ? (
-          <p style={{ margin: 0, color: "#64748b", fontSize: 13 }}>선수 마스터에 있는 인원이 모두 이 이벤트에 연결되어 있습니다. 새 사람은 옆의 &quot;새 선수 등록하며 추가&quot;를 이용하세요.</p>
+          <p style={{ margin: 0, color: "#64748b", fontSize: 13 }}>선수 마스터에 있는 인원이 모두 이 일정에 연결되어 있습니다. 새 사람은 옆의 &quot;새 선수 등록하며 추가&quot;를 이용하세요.</p>
         ) : null}
       </label>
 

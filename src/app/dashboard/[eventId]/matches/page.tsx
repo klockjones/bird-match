@@ -44,8 +44,8 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
 
   const [{ data: event, error: eventError }, { data: eventPlayers, error: eventPlayersError }, { data: matches, error: matchesError }] = await Promise.all([
     supabase.from("events").select("id,title,public_uuid,event_type,status,event_date,location,is_public,scoring_rule,team_label_1,team_label_2,created_at,updated_at").eq("id", eventId).single(),
-    supabase.from("event_players").select("id,team,seed,note,created_at,players(id,name,gender,level,phone,memo,is_active,created_at)").eq("event_id", eventId).order("created_at", { ascending: false }),
-    supabase.from("matches").select("id,event_id,round_name,group_name,match_no,court_no,status,team1_score,team2_score,winner_side,scheduled_at,sort_order,note,created_at,updated_at,match_players(side,position,players(id,name,gender,level,phone,memo,is_active,created_at))").eq("event_id", eventId).order("sort_order", { ascending: true }).order("match_no", { ascending: true }),
+    supabase.from("event_players").select("id,team,seed,note,created_at,players(id,name,gender,level,phone,memo,affiliation,english_id,national_level,regional_level,is_active,created_at)").eq("event_id", eventId).order("created_at", { ascending: false }),
+    supabase.from("matches").select("id,event_id,round_name,group_name,match_no,court_no,status,team1_score,team2_score,winner_side,scheduled_at,sort_order,note,created_at,updated_at,match_players(side,position,players(id,name,gender,level,phone,memo,affiliation,english_id,national_level,regional_level,is_active,created_at))").eq("event_id", eventId).order("sort_order", { ascending: true }).order("match_no", { ascending: true }),
   ]);
 
   if (eventError || !event) notFound();
@@ -118,6 +118,11 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
         <div>
           <h2 style={{ marginBottom: 8 }}>등록된 경기</h2>
           <p className="surface-copy" style={{ margin: 0 }}>요약을 먼저 보고, 필요한 경기만 열어서 수정하는 흐름으로 운영합니다.</p>
+        </div>
+
+        <div className="operator-menu-link-row">
+          <Link href={`/dashboard/${eventId}/matches/new`} className="event-launcher-link">경기 생성</Link>
+          <Link href={`/dashboard/${eventId}/matches/auto`} className="event-launcher-link">대진표 자동 생성</Link>
         </div>
 
         {courtOptions.length > 1 ? (

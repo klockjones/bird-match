@@ -4,7 +4,7 @@ const optionalUuid = z.union([z.literal(""), z.string().uuid()]).default("");
 
 export const createMatchSchema = z
   .object({
-    eventId: z.string().uuid("올바른 이벤트 식별자가 아닙니다."),
+    eventId: z.string().uuid("올바른 일정 식별자가 아닙니다."),
     roundName: z.string().trim().max(50).optional(),
     groupName: z.string().trim().max(50).optional(),
     matchNo: z.coerce.number().int().positive("경기 번호는 1 이상이어야 합니다."),
@@ -31,7 +31,7 @@ export const createMatchSchema = z
 
 export const updateMatchScoreSchema = z
   .object({
-    eventId: z.string().uuid("올바른 이벤트 식별자가 아닙니다."),
+    eventId: z.string().uuid("올바른 일정 식별자가 아닙니다."),
     matchId: z.string().uuid("올바른 경기 식별자가 아닙니다."),
     status: z.enum(["waiting", "done"]),
     team1Score: z.coerce.number().int().min(0, "점수는 0 이상이어야 합니다."),
@@ -77,7 +77,7 @@ export const updateMatchScoreSchema = z
 
 export const updateMatchSchema = z
   .object({
-    eventId: z.string().uuid("올바른 이벤트 식별자가 아닙니다."),
+    eventId: z.string().uuid("올바른 일정 식별자가 아닙니다."),
     matchId: z.string().uuid("올바른 경기 식별자가 아닙니다."),
     roundName: z.string().trim().max(50).optional(),
     groupName: z.string().trim().max(50).optional(),
@@ -141,11 +141,36 @@ export const updateMatchSchema = z
   });
 
 export const deleteMatchSchema = z.object({
-  eventId: z.string().uuid("올바른 이벤트 식별자가 아닙니다."),
+  eventId: z.string().uuid("올바른 일정 식별자가 아닙니다."),
   matchId: z.string().uuid("올바른 경기 식별자가 아닙니다."),
 });
+
+export const generatedMatchSchema = z
+  .object({
+    matchNo: z.number().int().positive("경기 번호는 1 이상이어야 합니다."),
+    sortOrder: z.number().int().min(0, "정렬 순서는 0 이상이어야 합니다."),
+    courtNo: z.string().trim().max(30).optional(),
+    note: z.string().trim().max(200).optional(),
+    playerA1: z.string().uuid(),
+    playerA2: z.string().uuid(),
+    playerB1: z.string().uuid(),
+    playerB2: z.string().uuid(),
+  })
+  .superRefine((value, ctx) => {
+    const ids = [value.playerA1, value.playerA2, value.playerB1, value.playerB2];
+    if (new Set(ids).size !== ids.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["playerA1"],
+        message: "같은 선수를 한 경기에서 중복 선택할 수 없습니다.",
+      });
+    }
+  });
+
+export const createGeneratedMatchesSchema = z.array(generatedMatchSchema).min(1, "생성된 경기가 없습니다.");
 
 export type CreateMatchInput = z.infer<typeof createMatchSchema>;
 export type UpdateMatchScoreInput = z.infer<typeof updateMatchScoreSchema>;
 export type UpdateMatchInput = z.infer<typeof updateMatchSchema>;
 export type DeleteMatchInput = z.infer<typeof deleteMatchSchema>;
+export type GeneratedMatchInput = z.infer<typeof generatedMatchSchema>;

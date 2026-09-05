@@ -18,6 +18,10 @@ export function ImportPlayersForm({ eventId }: ImportPlayersFormProps) {
       optionalColumns={[
         { key: "phone", label: "연락처" },
         { key: "memo", label: "메모" },
+        { key: "affiliation", label: "소속" },
+        { key: "english_id", label: "영문ID" },
+        { key: "national_level", label: "전국급수" },
+        { key: "regional_level", label: "지역급수" },
         { key: "team", label: "팀" },
         { key: "seed", label: "시드" },
       ]}

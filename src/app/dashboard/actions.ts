@@ -27,7 +27,7 @@ export async function createEvent(formData: FormData) {
   });
 
   if (!parsed.success) {
-    const message = parsed.error.issues[0]?.message ?? "이벤트 생성 입력값이 올바르지 않습니다.";
+    const message = parsed.error.issues[0]?.message ?? "일정 생성 입력값이 올바르지 않습니다.";
     redirect(`/dashboard?error=${encodeURIComponent(message)}`);
   }
 
@@ -77,7 +77,7 @@ export async function updateEvent(formData: FormData) {
   });
 
   if (!parsed.success) {
-    const message = parsed.error.issues[0]?.message ?? "이벤트 수정 입력값이 올바르지 않습니다.";
+    const message = parsed.error.issues[0]?.message ?? "일정 수정 입력값이 올바르지 않습니다.";
     redirect(`/dashboard/${formData.get("eventId")}?error=${encodeURIComponent(message)}`);
   }
 

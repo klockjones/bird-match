@@ -1,15 +1,14 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { CreateMatchForm } from "@/components/dashboard/create-match-form";
+import { AutoGenerateMatchesForm } from "@/components/dashboard/auto-generate-matches-form";
 import { OperatorTopBar } from "@/components/ui/operator-top-bar";
-import { Toast } from "@/components/ui/toast";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { EventDetailItem } from "@/lib/types/event";
 import type { EventPlayerItem, PlayerItem } from "@/lib/types/player";
 
-type NewMatchPageProps = {
+type AutoMatchesPageProps = {
   params: Promise<{ eventId: string }>;
-  searchParams?: Promise<{ created?: string; error?: string; t?: string }>;
+  searchParams?: Promise<{ error?: string }>;
 };
 
 type EventPlayerRow = {
@@ -21,7 +20,7 @@ type EventPlayerRow = {
   players: PlayerItem | PlayerItem[] | null;
 };
 
-export default async function NewMatchPage({ params, searchParams }: NewMatchPageProps) {
+export default async function AutoMatchesPage({ params, searchParams }: AutoMatchesPageProps) {
   const { eventId } = await params;
   const query = await searchParams;
   const supabase = await createSupabaseServerClient();
@@ -58,15 +57,14 @@ export default async function NewMatchPage({ params, searchParams }: NewMatchPag
           <span>경기 관리로 이동</span>
         </div>
         <OperatorTopBar name={user.user_metadata?.name as string | undefined} />
-        <h1 style={{ margin: 0 }}>경기 생성</h1>
-        <p className="surface-copy" style={{ margin: 0 }}>일정 참가자를 기준으로 경기 순서와 코트를 등록합니다.</p>
+        <h1 style={{ margin: 0 }}>대진표 자동 생성</h1>
+        <p className="surface-copy" style={{ margin: 0 }}>지역급수를 기준으로 남복/혼복 대진표를 랜덤 생성합니다. 결과를 확인한 뒤 등록하세요.</p>
       </div>
 
-      {query?.created ? <Toast key={query.t} message="경기가 생성되었습니다. 이어서 다음 경기를 등록할 수 있습니다." /> : null}
       {query?.error ? <p className="admin-inline-message error">{query.error}</p> : null}
       {eventPlayersError ? <p className="admin-inline-message error">참가자 목록을 불러오지 못했습니다: {eventPlayersError.message}</p> : null}
 
-      <CreateMatchForm event={detail} participants={participants} nextMatchNo={nextMatchNo} nextSortOrder={nextSortOrder} />
+      <AutoGenerateMatchesForm event={detail} participants={participants} nextMatchNo={nextMatchNo} nextSortOrder={nextSortOrder} />
     </main>
   );
 }

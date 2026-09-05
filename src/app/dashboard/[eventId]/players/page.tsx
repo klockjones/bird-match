@@ -65,12 +65,12 @@ export default async function EventPlayersPage({ params, searchParams }: EventPl
       .single(),
     supabase
       .from("players")
-      .select("id,name,gender,level,phone,memo,is_active,created_at")
+      .select("id,name,gender,level,phone,memo,affiliation,english_id,national_level,regional_level,is_active,created_at")
       .eq("is_active", true)
       .order("name", { ascending: true }),
     supabase
       .from("event_players")
-      .select("id,team,seed,note,created_at,players(id,name,gender,level,phone,memo,is_active,created_at)")
+      .select("id,team,seed,note,created_at,players(id,name,gender,level,phone,memo,affiliation,english_id,national_level,regional_level,is_active,created_at)")
       .eq("event_id", eventId)
       .order("created_at", { ascending: false }),
   ]);
@@ -110,6 +110,8 @@ export default async function EventPlayersPage({ params, searchParams }: EventPl
   const unassignedCount = participantList.filter((item) => !item.team).length;
 
   const teamOptions = [...new Set(participantList.map((item) => item.team).filter((team): team is string => Boolean(team)))];
+  const nationalLevelOptions = [...new Set(participantList.map((item) => item.player.national_level).filter((value): value is string => Boolean(value)))];
+  const regionalLevelOptions = [...new Set(participantList.map((item) => item.player.regional_level).filter((value): value is string => Boolean(value)))];
   const selectedTeam = query?.team && (query.team === UNASSIGNED_TEAM || teamOptions.includes(query.team)) ? query.team : null;
   const sortOrder = query?.sort === "name" || query?.sort === "seed" ? query.sort : "recent";
   const searchTerm = query?.q?.trim().toLowerCase() ?? "";
@@ -154,12 +156,12 @@ export default async function EventPlayersPage({ params, searchParams }: EventPl
         <SectionHeader title="참가자 추가" description="이미 등록된 선수를 골라 연결하거나, 없는 사람이면 바로 등록하면서 추가합니다." />
         <div className="participant-add-grid">
           <AddEventPlayerForm event={detail} players={availablePlayers} teamOptions={teamOptions} />
-          <CreateEventPlayerForm event={detail} teamOptions={teamOptions} />
+          <CreateEventPlayerForm event={detail} teamOptions={teamOptions} nationalLevelOptions={nationalLevelOptions} regionalLevelOptions={regionalLevelOptions} />
         </div>
       </section>
 
       <section className="admin-stack">
-        <SectionHeader title="현재 참가자" description="같은 선수는 동일 이벤트에 한 번만 추가됩니다." />
+        <SectionHeader title="현재 참가자" description="같은 선수는 동일 일정에 한 번만 추가됩니다." />
 
         <form method="GET" className="participant-search-row">
           <input type="hidden" name="team" value={selectedTeam ?? ""} />
@@ -197,12 +199,16 @@ export default async function EventPlayersPage({ params, searchParams }: EventPl
                     <div className="player-primary-text">{participant.player.name}</div>
                     {participant.team ? <span className="team-caption" style={getTeamAccentStyle(participant.team)}>{participant.team}</span> : null}
                     <div className="participant-meta-row">
-                      <span className="participant-info-chip">{participant.player.gender ?? "구분 미정"}</span>
-                      <span className="participant-info-chip">{participant.player.level ?? "레벨 미정"}</span>
+                      <span className={`participant-info-chip${participant.player.gender ? "" : " chip-muted"}`}>{participant.player.gender ?? "구분 미정"}</span>
+                      <span className={`participant-info-chip${participant.player.level ? "" : " chip-muted"}`}>{participant.player.level ?? "레벨 미정"}</span>
+                      {participant.player.affiliation ? <span className="participant-info-chip">{participant.player.affiliation}</span> : null}
+                      {participant.player.english_id ? <span className="participant-info-chip">{participant.player.english_id}</span> : null}
                     </div>
                   </div>
                   <div className="participant-meta-row">
-                    <span className="participant-info-chip">시드 {participant.seed ?? "없음"}</span>
+                    <span className={`participant-info-chip${participant.seed ? "" : " chip-muted"}`}>시드 {participant.seed ?? "없음"}</span>
+                    <span className={`participant-info-chip${participant.player.national_level ? "" : " chip-muted"}`}>전국 {participant.player.national_level ?? "미지정"}</span>
+                    <span className={`participant-info-chip${participant.player.regional_level ? "" : " chip-muted"}`}>지역 {participant.player.regional_level ?? "미지정"}</span>
                     {participant.player.phone ? <span className="participant-info-chip">{participant.player.phone}</span> : null}
                   </div>
                 </div>

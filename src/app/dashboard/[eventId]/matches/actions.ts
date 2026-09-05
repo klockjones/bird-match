@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createMatchSchema, deleteMatchSchema, updateMatchSchema, updateMatchScoreSchema } from "@/lib/validation/match";
+import { createGeneratedMatchesSchema, createMatchSchema, deleteMatchSchema, updateMatchSchema, updateMatchScoreSchema } from "@/lib/validation/match";
 
 async function requireUser() {
   const supabase = await createSupabaseServerClient();
@@ -30,7 +31,7 @@ async function validateEventPlayers(supabase: Awaited<ReturnType<typeof createSu
   }
 
   if ((eventPlayers ?? []).length !== playerIds.length) {
-    redirect(`${returnPath}?error=${encodeURIComponent("이벤트 참가자만 경기 선수로 배정할 수 있습니다.")}`);
+    redirect(`${returnPath}?error=${encodeURIComponent("일정 참가자만 경기 선수로 배정할 수 있습니다.")}`);
   }
 }
 
@@ -245,6 +246,81 @@ export async function updateMatchScore(formData: FormData) {
   revalidatePath(`/dashboard/${values.eventId}/matches`);
   revalidatePath(`/bracket/${formData.get("publicUuid") ?? ""}`);
   redirect(`/dashboard/${values.eventId}/matches?updated=1&t=${Date.now()}`);
+}
+
+export async function createGeneratedMatches(formData: FormData) {
+  const { supabase } = await requireUser();
+
+  const eventIdParsed = z.string().uuid("올바른 일정 식별자가 아닙니다.").safeParse(formData.get("eventId"));
+
+  if (!eventIdParsed.success) {
+    redirect(`/dashboard/${formData.get("eventId")}/matches/auto?error=${encodeURIComponent("올바른 일정 식별자가 아닙니다.")}`);
+  }
+
+  const eventId = eventIdParsed.data;
+  const returnPath = `/dashboard/${eventId}/matches/auto`;
+
+  let rawMatches: unknown;
+  try {
+    rawMatches = JSON.parse(String(formData.get("matches") ?? "[]"));
+  } catch {
+    redirect(`${returnPath}?error=${encodeURIComponent("생성된 대진표 데이터를 읽지 못했습니다.")}`);
+  }
+
+  const parsed = createGeneratedMatchesSchema.safeParse(rawMatches);
+
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message ?? "생성된 대진표 데이터가 올바르지 않습니다.";
+    redirect(`${returnPath}?error=${encodeURIComponent(message)}`);
+  }
+
+  const generatedMatches = parsed.data;
+  const allPlayerIds = [...new Set(generatedMatches.flatMap((match) => [match.playerA1, match.playerA2, match.playerB1, match.playerB2]))];
+  await validateEventPlayers(supabase, eventId, allPlayerIds, returnPath);
+
+  const createdMatchIds: string[] = [];
+
+  for (const generated of generatedMatches) {
+    const { data: match, error: matchError } = await supabase
+      .from("matches")
+      .insert({
+        event_id: eventId,
+        match_no: generated.matchNo,
+        court_no: generated.courtNo || null,
+        status: "waiting",
+        sort_order: generated.sortOrder,
+        note: generated.note || null,
+      })
+      .select("id")
+      .single();
+
+    if (matchError || !match) {
+      if (createdMatchIds.length > 0) {
+        await supabase.from("matches").delete().in("id", createdMatchIds);
+      }
+      redirect(`${returnPath}?error=${encodeURIComponent(matchError?.message ?? "경기를 생성하지 못했습니다.")}`);
+    }
+
+    createdMatchIds.push(match.id);
+
+    const { error: slotError } = await supabase.from("match_players").insert(
+      buildSlots(generated).map((slot) => ({
+        match_id: match.id,
+        player_id: slot.playerId,
+        side: slot.side,
+        position: slot.position,
+      })),
+    );
+
+    if (slotError) {
+      await supabase.from("matches").delete().in("id", createdMatchIds);
+      redirect(`${returnPath}?error=${encodeURIComponent(slotError.message)}`);
+    }
+  }
+
+  revalidatePath(`/dashboard/${eventId}`);
+  revalidatePath(`/dashboard/${eventId}/matches`);
+  redirect(`/dashboard/${eventId}/matches?created=${createdMatchIds.length}&t=${Date.now()}`);
 }
 
 export async function deleteMatch(formData: FormData) {

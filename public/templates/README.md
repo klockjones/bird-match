@@ -20,6 +20,10 @@
 - `level`
 - `phone`
 - `memo`
+- `affiliation` (소속)
+- `english_id` (영문ID)
+- `national_level` (전국급수)
+- `regional_level` (지역급수)
 - `team`
 - `seed`
 
@@ -28,6 +32,7 @@ Notes:
 - `team` is optional for general events
 - `team` should match the event's actual team names for 청백전 (for example `어피치`, `라이언`)
 - `seed` is optional
+- `national_level` / `regional_level` are free text — grading varies by event (e.g. some events subdivide `D` into `E1`/`E2`/`E3`), so there's no fixed list of valid values
 
 ## Match columns
 

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const eventSchemaBase = z.object({
-  title: z.string().trim().min(2, "이벤트명은 2자 이상이어야 합니다.").max(100),
+  title: z.string().trim().min(2, "일정명은 2자 이상이어야 합니다.").max(100),
   eventType: z.enum(["general", "blue_white"]),
   eventDate: z.string().trim().optional(),
   location: z.string().trim().max(100).optional(),
@@ -27,7 +27,7 @@ function applyTeamLabelValidation<T extends z.ZodTypeAny>(schema: T) {
 export const createEventSchema = applyTeamLabelValidation(eventSchemaBase);
 
 export const updateEventSchema = applyTeamLabelValidation(eventSchemaBase.extend({
-  eventId: z.string().uuid("올바른 이벤트 식별자가 아닙니다."),
+  eventId: z.string().uuid("올바른 일정 식별자가 아닙니다."),
   status: z.enum(["draft", "published", "closed"]),
 }));
 

@@ -1,11 +1,16 @@
 import { createPlayer } from "@/app/dashboard/players/actions";
 
-export function CreatePlayerForm() {
+type CreatePlayerFormProps = {
+  nationalLevelOptions: string[];
+  regionalLevelOptions: string[];
+};
+
+export function CreatePlayerForm({ nationalLevelOptions, regionalLevelOptions }: CreatePlayerFormProps) {
   return (
     <form action={createPlayer} style={{ display: "grid", gap: 12, padding: 16, border: "1px solid #cbd5e1", borderRadius: 12, background: "#ffffff" }}>
       <div>
         <h2 style={{ margin: 0 }}>선수 마스터 등록</h2>
-        <p style={{ margin: "8px 0 0", color: "#475569" }}>이벤트 참가 전, 재사용 가능한 선수 명단을 먼저 관리합니다.</p>
+        <p style={{ margin: "8px 0 0", color: "#475569" }}>일정 참가 전, 재사용 가능한 선수 명단을 먼저 관리합니다.</p>
       </div>
 
       <label style={{ display: "grid", gap: 6 }}>
@@ -25,6 +30,34 @@ export function CreatePlayerForm() {
         <label style={{ display: "grid", gap: 6 }}>
           <span>급수/레벨</span>
           <input name="level" placeholder="예: A조 / C급" />
+        </label>
+      </div>
+
+      <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>소속</span>
+          <input name="affiliation" placeholder="예: 강남구청 배드민턴클럽" />
+        </label>
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>영문ID</span>
+          <input name="englishId" placeholder="예: cliff.park" />
+        </label>
+      </div>
+
+      <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>전국급수</span>
+          <input name="nationalLevel" list="national-level-options" placeholder="예: A, B, C, D, E" />
+          <datalist id="national-level-options">
+            {nationalLevelOptions.map((option) => <option key={option} value={option} />)}
+          </datalist>
+        </label>
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>지역급수</span>
+          <input name="regionalLevel" list="regional-level-options" placeholder="예: A, B, C, D, E" />
+          <datalist id="regional-level-options">
+            {regionalLevelOptions.map((option) => <option key={option} value={option} />)}
+          </datalist>
         </label>
       </div>
 
