@@ -23,8 +23,8 @@ export default async function NewEventPage({ searchParams }: NewEventPageProps) 
     <main className="admin-page-shell">
       <div className="admin-hero">
         <div className="operator-menu-link-row">
-          <Link href="/dashboard?home=1" className="operator-menu-arrow" aria-label="일정 목록으로 이동">←</Link>
-          <span>일정 목록으로 이동</span>
+          <Link href="/dashboard?home=1" className="operator-menu-arrow" aria-label="운영자 메뉴로 이동">←</Link>
+          <span>운영자 메뉴로 이동</span>
         </div>
         <OperatorTopBar name={user.user_metadata?.name as string | undefined} />
         <h1 style={{ margin: 0 }}>일정 생성</h1>

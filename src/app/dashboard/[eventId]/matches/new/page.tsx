@@ -54,8 +54,8 @@ export default async function NewMatchPage({ params, searchParams }: NewMatchPag
     <main className="admin-page-shell">
       <div className="admin-hero">
         <div className="operator-menu-link-row">
-          <Link href={`/dashboard/${eventId}/matches`} className="operator-menu-arrow" aria-label="경기 관리로 이동">←</Link>
-          <span>경기 관리로 이동</span>
+          <Link href={`/dashboard/${eventId}/matches`} className="operator-menu-arrow" aria-label="운영자 메뉴로 이동">←</Link>
+          <span>운영자 메뉴로 이동</span>
         </div>
         <OperatorTopBar name={user.user_metadata?.name as string | undefined} />
         <h1 style={{ margin: 0 }}>경기 생성</h1>

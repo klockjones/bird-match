@@ -9,7 +9,7 @@ import { SummaryCard } from "@/components/ui/summary-card";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { EventDetailItem } from "@/lib/types/event";
 import type { EventPlayerItem, PlayerItem } from "@/lib/types/player";
-import { getEffectiveTeam, getMatchPlayerLabel } from "@/lib/utils/player-display";
+import { getDoublesTypeLabel, getEffectiveTeam, getMatchPlayerLabel } from "@/lib/utils/player-display";
 import { getTeamAccentStyle } from "@/lib/utils/team-accent";
 
 function getIdentitySortKey(player: PlayerItem): string {
@@ -63,7 +63,7 @@ export default async function EventPlayersPage({ params, searchParams }: EventPl
     redirect("/login");
   }
 
-  const [{ data: event, error: eventError }, { data: eventPlayers, error: eventPlayersError }] = await Promise.all([
+  const [{ data: event, error: eventError }, { data: eventPlayers, error: eventPlayersError }, { data: matchRows }] = await Promise.all([
     supabase
       .from("events")
       .select("id,title,public_uuid,event_type,status,event_date,location,is_public,scoring_rule,team_label_1,team_label_2,created_at,updated_at")
@@ -74,6 +74,11 @@ export default async function EventPlayersPage({ params, searchParams }: EventPl
       .select("id,team,seed,note,created_at,players(id,name,gender,level,phone,memo,affiliation,english_id,national_level,regional_level,is_active,created_at)")
       .eq("event_id", eventId)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("matches")
+      .select("match_no,round_name,court_no,match_players(player_id,side,players(gender))")
+      .eq("event_id", eventId)
+      .order("sort_order", { ascending: true }),
   ]);
 
   if (eventError || !event) {
@@ -81,6 +86,23 @@ export default async function EventPlayersPage({ params, searchParams }: EventPl
   }
 
   const detail = event as EventDetailItem;
+  type PlayerMatchInfo = { matchNo: number; roundName: string | null; courtNo: string | null; doublesType: string };
+  type MatchPlayerRow = { player_id: string; side: "A" | "B"; players: { gender: string | null } | { gender: string | null }[] | null };
+  const matchCountByPlayer = new Map<string, number>();
+  const matchInfoByPlayer = new Map<string, PlayerMatchInfo[]>();
+  (matchRows ?? []).forEach((match) => {
+    const row = match as { match_no: number; round_name: string | null; court_no: string | null; match_players: MatchPlayerRow[] | null };
+    const slots = row.match_players ?? [];
+    slots.forEach((slot) => {
+      matchCountByPlayer.set(slot.player_id, (matchCountByPlayer.get(slot.player_id) ?? 0) + 1);
+      const sidePlayers = slots
+        .filter((other) => other.side === slot.side)
+        .map((other) => (Array.isArray(other.players) ? other.players[0] : other.players) ?? { gender: null });
+      const info = matchInfoByPlayer.get(slot.player_id) ?? [];
+      info.push({ matchNo: row.match_no, roundName: row.round_name, courtNo: row.court_no, doublesType: getDoublesTypeLabel(sidePlayers) });
+      matchInfoByPlayer.set(slot.player_id, info);
+    });
+  });
   const participantList = ((eventPlayers ?? []) as EventPlayerRow[])
     .map((item) => {
       const player = Array.isArray(item.players) ? item.players[0] : item.players;
@@ -188,9 +210,19 @@ export default async function EventPlayersPage({ params, searchParams }: EventPl
                       <span className={`participant-info-chip${participant.player.gender ? "" : " chip-muted"}`}>{participant.player.gender ?? "구분 미정"}</span>
                       <span className={`participant-info-chip${participant.player.national_level ? "" : " chip-muted"}`}>전국 {participant.player.national_level ?? "미지정"}</span>
                       <span className={`participant-info-chip${participant.player.regional_level ? "" : " chip-muted"}`}>지역 {participant.player.regional_level ?? "미지정"}</span>
+                      <span className={`participant-info-chip${matchCountByPlayer.get(participant.player.id) ? "" : " chip-muted"}`}>경기 {matchCountByPlayer.get(participant.player.id) ?? 0}</span>
                       {participant.player.phone ? <span className="participant-info-chip">{participant.player.phone}</span> : null}
                     </div>
                   </div>
+                  {(matchInfoByPlayer.get(participant.player.id) ?? []).length > 0 ? (
+                    <div className="participant-meta-row">
+                      {(matchInfoByPlayer.get(participant.player.id) ?? []).map((info) => (
+                        <span key={info.matchNo} className="participant-info-chip">
+                          {info.roundName ?? "라운드 미정"} · {info.courtNo ?? "코트 미정"} · {info.doublesType} ({info.matchNo}경기)
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                   {participant.note ? <div className="participant-note-card"><p className="player-secondary-text" style={{ margin: 0 }}>{participant.note}</p></div> : null}
                   <form action={removeEventPlayer} style={{ justifySelf: "end" }}>
                     <input type="hidden" name="eventId" value={eventId} />

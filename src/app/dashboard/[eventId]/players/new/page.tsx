@@ -74,8 +74,8 @@ export default async function NewEventPlayerPage({ params, searchParams }: NewEv
     <main className="admin-page-shell">
       <div className="admin-hero">
         <div className="operator-menu-link-row">
-          <Link href={`/dashboard/${eventId}/players`} className="operator-menu-arrow" aria-label="참가 명단 관리로 이동">←</Link>
-          <span>참가 명단 관리로 이동</span>
+          <Link href={`/dashboard/${eventId}/players`} className="operator-menu-arrow" aria-label="운영자 메뉴로 이동">←</Link>
+          <span>운영자 메뉴로 이동</span>
         </div>
         <OperatorTopBar name={user.user_metadata?.name as string | undefined} />
         <h1 style={{ margin: 0 }}>참가 명단 추가 (수동입력)</h1>

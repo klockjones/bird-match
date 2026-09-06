@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createGeneratedMatchesSchema, createMatchSchema, deleteMatchSchema, updateMatchSchema, updateMatchScoreSchema } from "@/lib/validation/match";
+import { createGeneratedMatchesSchema, createMatchSchema, deleteAllMatchesSchema, deleteMatchSchema, updateMatchSchema, updateMatchScoreSchema } from "@/lib/validation/match";
 
 async function requireUser() {
   const supabase = await createSupabaseServerClient();
@@ -286,6 +286,7 @@ export async function createGeneratedMatches(formData: FormData) {
       .insert({
         event_id: eventId,
         match_no: generated.matchNo,
+        round_name: generated.roundName || null,
         court_no: generated.courtNo || null,
         status: "waiting",
         sort_order: generated.sortOrder,
@@ -347,4 +348,29 @@ export async function deleteMatch(formData: FormData) {
   revalidatePath(`/dashboard/${values.eventId}/matches`);
   revalidatePath(`/bracket/${formData.get("publicUuid") ?? ""}`);
   redirect(`/dashboard/${values.eventId}/matches?deleted=1&t=${Date.now()}`);
+}
+
+export async function deleteAllMatches(formData: FormData) {
+  const { supabase } = await requireUser();
+
+  const parsed = deleteAllMatchesSchema.safeParse({
+    eventId: formData.get("eventId"),
+  });
+
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message ?? "일괄 삭제 입력값이 올바르지 않습니다.";
+    redirect(`/dashboard/${formData.get("eventId")}/matches?error=${encodeURIComponent(message)}`);
+  }
+
+  const values = parsed.data;
+  const { error } = await supabase.from("matches").delete().eq("event_id", values.eventId);
+
+  if (error) {
+    redirect(`/dashboard/${values.eventId}/matches?error=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath(`/dashboard/${values.eventId}`);
+  revalidatePath(`/dashboard/${values.eventId}/matches`);
+  revalidatePath(`/bracket/${formData.get("publicUuid") ?? ""}`);
+  redirect(`/dashboard/${values.eventId}/matches?deletedAll=1&t=${Date.now()}`);
 }

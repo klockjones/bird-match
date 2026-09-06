@@ -388,10 +388,33 @@ a:focus-visible {
 
 .status-chip.waiting { background: #e2e8f0; color: #334155; }
 .status-chip.done { background: #ede9fe; color: #6d28d9; }
-.status-chip.next { background: #dbeafe; color: #1d4ed8; }
+.status-chip.next { background: #dbeafe; color: #1d4ed8; position: relative; padding-left: 28px; }
 .status-chip.draft { background: #e2e8f0; color: #334155; }
 .status-chip.published { background: #dcfce7; color: #15803d; }
 .status-chip.closed { background: #ede9fe; color: #6d28d9; }
+
+.status-chip.next::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #2563eb;
+  transform: translateY(-50%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .status-chip.next::before {
+    animation: liveDotPulse 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes liveDotPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.45); }
+  50% { box-shadow: 0 0 0 5px rgba(37, 99, 235, 0); }
+}
 
 .meta-chip {
   background: #eff6ff;
@@ -538,7 +561,7 @@ a:focus-visible {
 }
 
 .matchboard-queue-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
 }
 
 .match-card {
@@ -648,6 +671,7 @@ a:focus-visible {
   font-weight: var(--weight-bold);
   line-height: 1.2;
   color: #0f172a;
+  overflow-wrap: anywhere;
 }
 
 .player-team-stack {
@@ -669,6 +693,12 @@ a:focus-visible {
   background: linear-gradient(180deg, #ffffff, #f8fbff);
   justify-items: center;
   text-align: center;
+}
+
+.pair-unit.won {
+  border: 1.5px solid #16a34a;
+  background: linear-gradient(180deg, #f0fdf4, #ffffff);
+  box-shadow: 0 10px 24px rgba(22, 163, 74, 0.14);
 }
 
 .pair-row {
@@ -703,7 +733,7 @@ a:focus-visible {
   min-height: 32px;
   padding: 0 10px;
   border-radius: 999px;
-  background: #1d4ed8;
+  background: #16a34a;
   color: #ffffff;
   font-size: 12px;
   font-weight: 800;
@@ -717,15 +747,31 @@ a:focus-visible {
 
 .pair-group {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: 1fr;
+  gap: 6px;
   align-items: start;
   justify-items: center;
   flex: 1;
 }
 
 .pair-player-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
   font-size: clamp(13px, 1.5vw, 16px);
+}
+
+.pair-affiliation-caption {
+  font-size: 10px;
+  padding: 2px 8px 2px 6px;
+  min-height: 0;
+}
+
+.pair-affiliation-caption::before {
+  width: 10px;
+  height: 10px;
+  box-shadow: 0 0 0 3px var(--team-dot-ring, rgba(148, 163, 184, 0.16));
 }
 
 .pair-player-card {
@@ -757,8 +803,9 @@ a:focus-visible {
   justify-content: flex-end;
   min-width: 74px;
   color: #0f172a;
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 

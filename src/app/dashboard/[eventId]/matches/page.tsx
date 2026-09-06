@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { deleteAllMatches } from "@/app/dashboard/[eventId]/matches/actions";
 import { QuickScoreForm } from "@/components/dashboard/quick-score-form";
 import { UpdateMatchForm } from "@/components/dashboard/update-match-form";
+import { HoldToConfirmButton } from "@/components/ui/hold-to-confirm-button";
 import { OperatorTopBar } from "@/components/ui/operator-top-bar";
 import { Toast } from "@/components/ui/toast";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -9,13 +11,13 @@ import type { EventDetailItem } from "@/lib/types/event";
 import type { MatchItem, MatchPlayerSlot } from "@/lib/types/match";
 import type { EventPlayerItem, PlayerItem } from "@/lib/types/player";
 import { formatDateTime } from "@/lib/utils/format-date";
-import { getMatchPlayerLabel } from "@/lib/utils/player-display";
+import { getDoublesTypeLabel, getMatchPlayerLabel } from "@/lib/utils/player-display";
 import { getMatchStatusLabel } from "@/lib/utils/status-labels";
 import { getTeamAccentStyle } from "@/lib/utils/team-accent";
 
 type EventMatchesPageProps = {
   params: Promise<{ eventId: string }>;
-  searchParams?: Promise<{ created?: string; updated?: string; deleted?: string; error?: string; t?: string; court?: string }>;
+  searchParams?: Promise<{ created?: string; updated?: string; deleted?: string; deletedAll?: string; error?: string; t?: string; court?: string }>;
 };
 
 type EventPlayerRow = {
@@ -82,7 +84,9 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
       ? "경기 상태와 점수가 저장되었습니다."
       : query?.deleted
         ? "경기가 삭제되었습니다."
-        : null;
+        : query?.deletedAll
+          ? "등록된 경기를 모두 삭제했습니다."
+          : null;
 
   return (
     <main className="admin-page-shell">
@@ -126,6 +130,19 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
           <Link href={`/dashboard/${eventId}/matches/auto`} className="event-launcher-link">대진표 자동 생성</Link>
         </div>
 
+        {matchList.length > 0 ? (
+          <form action={deleteAllMatches} style={{ justifySelf: "start" }}>
+            <input type="hidden" name="eventId" value={eventId} />
+            <input type="hidden" name="publicUuid" value={detail.public_uuid} />
+            <HoldToConfirmButton
+              className="danger-button"
+              label={`꾹 눌러서 등록된 경기 ${matchList.length}건 일괄 삭제`}
+              holdingLabel="손을 떼면 취소돼요..."
+              pendingLabel="삭제 중..."
+            />
+          </form>
+        ) : null}
+
         {courtOptions.length > 1 ? (
           <div className="filter-pill-row">
             <a href="?" className={`filter-pill${selectedCourt ? "" : " active"}`}>전체</a>
@@ -163,7 +180,7 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
 
                   <div className="admin-sides-grid">
                     <div className="admin-side-card">
-                      <span className="admin-side-label">A측 복식조</span>
+                      <span className="admin-side-label">A측 ({getDoublesTypeLabel(sideAPlayers.map((slot) => slot.player))})</span>
                       {sideAPlayers.map((slot) => (
                         <div key={`match-a-${match.id}-${slot.player.id}-${slot.position}`} className="player-team-stack">
                           <div className="player-primary-text">{getMatchPlayerLabel(slot.player)}</div>
@@ -172,7 +189,7 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
                       ))}
                     </div>
                     <div className="admin-side-card">
-                      <span className="admin-side-label">B측 복식조</span>
+                      <span className="admin-side-label">B측 ({getDoublesTypeLabel(sideBPlayers.map((slot) => slot.player))})</span>
                       {sideBPlayers.map((slot) => (
                         <div key={`match-b-${match.id}-${slot.player.id}-${slot.position}`} className="player-team-stack">
                           <div className="player-primary-text">{getMatchPlayerLabel(slot.player)}</div>

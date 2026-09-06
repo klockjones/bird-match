@@ -58,35 +58,41 @@ export function CreateMatchForm({ event, participants, nextMatchNo, nextSortOrde
         </label>
       </div>
 
-      <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>A팀 선수 1</span>
-          <select name="playerA1" defaultValue="" required>
-            <option value="" disabled>선수 선택</option>
-            {participants.map((participant) => <option key={participant.id} value={participant.player.id}>{playerLabel(participant)}</option>)}
-          </select>
-        </label>
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>A팀 선수 2</span>
-          <select name="playerA2" defaultValue="">
-            <option value="">없음 (단식 경기)</option>
-            {participants.map((participant) => <option key={participant.id} value={participant.player.id}>{playerLabel(participant)}</option>)}
-          </select>
-        </label>
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>B팀 선수 1</span>
-          <select name="playerB1" defaultValue="" required>
-            <option value="" disabled>선수 선택</option>
-            {participants.map((participant) => <option key={participant.id} value={participant.player.id}>{playerLabel(participant)}</option>)}
-          </select>
-        </label>
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>B팀 선수 2</span>
-          <select name="playerB2" defaultValue="">
-            <option value="">없음 (단식 경기)</option>
-            {participants.map((participant) => <option key={participant.id} value={participant.player.id}>{playerLabel(participant)}</option>)}
-          </select>
-        </label>
+      <div className="admin-sides-grid">
+        <div className="admin-side-card">
+          <span className="admin-side-label">A팀</span>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>선수 1</span>
+            <select name="playerA1" defaultValue="" required>
+              <option value="" disabled>선수 선택</option>
+              {participants.map((participant) => <option key={participant.id} value={participant.player.id}>{playerLabel(participant)}</option>)}
+            </select>
+          </label>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>선수 2</span>
+            <select name="playerA2" defaultValue="">
+              <option value="">없음 (단식 경기)</option>
+              {participants.map((participant) => <option key={participant.id} value={participant.player.id}>{playerLabel(participant)}</option>)}
+            </select>
+          </label>
+        </div>
+        <div className="admin-side-card">
+          <span className="admin-side-label">B팀</span>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>선수 1</span>
+            <select name="playerB1" defaultValue="" required>
+              <option value="" disabled>선수 선택</option>
+              {participants.map((participant) => <option key={participant.id} value={participant.player.id}>{playerLabel(participant)}</option>)}
+            </select>
+          </label>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>선수 2</span>
+            <select name="playerB2" defaultValue="">
+              <option value="">없음 (단식 경기)</option>
+              {participants.map((participant) => <option key={participant.id} value={participant.player.id}>{playerLabel(participant)}</option>)}
+            </select>
+          </label>
+        </div>
       </div>
 
       <label style={{ display: "grid", gap: 6 }}>

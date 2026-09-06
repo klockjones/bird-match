@@ -15,6 +15,24 @@ export function getMatchPlayerLabel(player: PlayerItem) {
   return identity || player.affiliation || "이름 미정";
 }
 
+/** Identity only (no affiliation prefix) — for layouts that show affiliation as its own separate line/chip. */
+export function getPlayerIdentity(player: PlayerItem) {
+  return player.english_id || player.name || "이름 미정";
+}
+
 export function getEffectiveTeam(item: EventPlayerItem): string | null {
   return item.team || item.player.affiliation || null;
+}
+
+/** Derives 남복/여복/혼복 from the actual players on a side — not stored on the match, so it always reflects reality even for manually created/edited matches. */
+export function getDoublesTypeLabel(players: Array<{ gender: string | null }>): string {
+  const genders = new Set(players.map((player) => player.gender).filter((value): value is string => Boolean(value)));
+
+  if (genders.size === 0) return "복식조";
+  if (genders.size > 1) return "혼복";
+
+  const [gender] = genders;
+  if (gender === "여") return "여복";
+  if (gender === "남") return "남복";
+  return "복식조";
 }

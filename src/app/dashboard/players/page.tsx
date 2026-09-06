@@ -37,8 +37,8 @@ export default async function PlayersPage({ searchParams }: PlayersPageProps) {
     <main className="admin-page-shell">
       <div className="admin-hero">
         <div className="operator-menu-link-row">
-          <Link href="/dashboard?home=1" className="operator-menu-arrow" aria-label="일정 목록으로 이동">←</Link>
-          <span>일정 목록으로 이동</span>
+          <Link href="/dashboard?home=1" className="operator-menu-arrow" aria-label="운영자 메뉴로 이동">←</Link>
+          <span>운영자 메뉴로 이동</span>
         </div>
         <OperatorTopBar name={user.user_metadata?.name as string | undefined} />
         <h1 style={{ marginBottom: 8 }}>선수 마스터 관리</h1>

@@ -6,7 +6,7 @@ import type { EventDetailItem } from "@/lib/types/event";
 import type { MatchItem, MatchPlayerSlot } from "@/lib/types/match";
 import type { PlayerItem } from "@/lib/types/player";
 import { formatDateOnly, formatDateTime, formatTimeOnly } from "@/lib/utils/format-date";
-import { getMatchPlayerLabel } from "@/lib/utils/player-display";
+import { getPlayerIdentity } from "@/lib/utils/player-display";
 import { getMatchStatusLabel } from "@/lib/utils/status-labels";
 import { getTeamAccentStyle } from "@/lib/utils/team-accent";
 
@@ -193,6 +193,7 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
                     <div>
                       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
                         <h3 className="match-heading">{match.match_no} 경기</h3>
+                        {match.round_name ? <span className="match-meta-chip">{match.round_name}</span> : null}
                         <span className="match-meta-chip">{match.court_no ?? "코트 미정"}</span>
                       </div>
                     </div>
@@ -207,17 +208,17 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
                   </div>
 
                   <div className="match-side-line">
-                    <div className="pair-unit">
+                    <div className={`pair-unit${match.status === "done" && match.winner_side === "A" ? " won" : ""}`}>
                       <div className="pair-row">
                         <div className="pair-badge-slot">
-                          {match.status === "done" && match.winner_side === "A" ? <span className="pair-win-badge">승</span> : null}
+                          {match.status === "done" && match.winner_side === "A" ? <span className="pair-win-badge">✓ 승</span> : null}
                         </div>
                         <div className="pair-left">
                           <div className="pair-group">
                           {getSidePlayers(match, "A").map((slot) => (
                             <div key={`queue-a-${match.id}-${slot.player.id}-${slot.position}`} className="pair-player-card">
-                              <strong className="player-primary-text pair-player-name">{getMatchPlayerLabel(slot.player)}</strong>
-                              <span className="team-caption" style={getTeamAccentStyle(playerTeamMap.get(slot.player.id) ?? teamLabel1)}>{playerTeamMap.get(slot.player.id) ?? teamLabel1}</span>
+                              <strong className="player-primary-text pair-player-name">{getPlayerIdentity(slot.player)}</strong>
+                              <span className="team-caption pair-affiliation-caption" style={getTeamAccentStyle(slot.player.affiliation ?? playerTeamMap.get(slot.player.id) ?? teamLabel1)}>{slot.player.affiliation ?? playerTeamMap.get(slot.player.id) ?? teamLabel1}</span>
                             </div>
                           ))}
                           </div>
@@ -227,17 +228,17 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
                     </div>
                   </div>
                   <div className="match-side-line">
-                    <div className="pair-unit">
+                    <div className={`pair-unit${match.status === "done" && match.winner_side === "B" ? " won" : ""}`}>
                       <div className="pair-row">
                         <div className="pair-badge-slot">
-                          {match.status === "done" && match.winner_side === "B" ? <span className="pair-win-badge">승</span> : null}
+                          {match.status === "done" && match.winner_side === "B" ? <span className="pair-win-badge">✓ 승</span> : null}
                         </div>
                         <div className="pair-left">
                           <div className="pair-group">
                           {getSidePlayers(match, "B").map((slot) => (
                             <div key={`queue-b-${match.id}-${slot.player.id}-${slot.position}`} className="pair-player-card">
-                              <strong className="player-primary-text pair-player-name">{getMatchPlayerLabel(slot.player)}</strong>
-                              <span className="team-caption" style={getTeamAccentStyle(playerTeamMap.get(slot.player.id) ?? teamLabel2)}>{playerTeamMap.get(slot.player.id) ?? teamLabel2}</span>
+                              <strong className="player-primary-text pair-player-name">{getPlayerIdentity(slot.player)}</strong>
+                              <span className="team-caption pair-affiliation-caption" style={getTeamAccentStyle(slot.player.affiliation ?? playerTeamMap.get(slot.player.id) ?? teamLabel2)}>{slot.player.affiliation ?? playerTeamMap.get(slot.player.id) ?? teamLabel2}</span>
                             </div>
                           ))}
                           </div>

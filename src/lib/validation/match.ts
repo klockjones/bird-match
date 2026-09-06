@@ -145,10 +145,15 @@ export const deleteMatchSchema = z.object({
   matchId: z.string().uuid("올바른 경기 식별자가 아닙니다."),
 });
 
+export const deleteAllMatchesSchema = z.object({
+  eventId: z.string().uuid("올바른 일정 식별자가 아닙니다."),
+});
+
 export const generatedMatchSchema = z
   .object({
     matchNo: z.number().int().positive("경기 번호는 1 이상이어야 합니다."),
     sortOrder: z.number().int().min(0, "정렬 순서는 0 이상이어야 합니다."),
+    roundName: z.string().trim().max(50).optional(),
     courtNo: z.string().trim().max(30).optional(),
     note: z.string().trim().max(200).optional(),
     playerA1: z.string().uuid(),
@@ -173,4 +178,5 @@ export type CreateMatchInput = z.infer<typeof createMatchSchema>;
 export type UpdateMatchScoreInput = z.infer<typeof updateMatchScoreSchema>;
 export type UpdateMatchInput = z.infer<typeof updateMatchSchema>;
 export type DeleteMatchInput = z.infer<typeof deleteMatchSchema>;
+export type DeleteAllMatchesInput = z.infer<typeof deleteAllMatchesSchema>;
 export type GeneratedMatchInput = z.infer<typeof generatedMatchSchema>;
