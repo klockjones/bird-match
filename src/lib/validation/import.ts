@@ -5,8 +5,6 @@ export const playerImportRowSchema = z
     name: z.string().trim().optional(),
     gender: z.string().trim().optional(),
     level: z.string().trim().optional(),
-    phone: z.string().trim().optional(),
-    memo: z.string().trim().optional(),
     affiliation: z.string().trim().max(50).optional(),
     english_id: z.string().trim().max(50).optional(),
     national_level: z.string().trim().max(20).optional(),

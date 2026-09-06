@@ -2,11 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { readUploadedSheet } from "@/lib/imports/csv";
+import { readUploadedCsv } from "@/lib/imports/csv";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { matchImportRowSchema, playerImportRowSchema } from "@/lib/validation/import";
 
-type SpreadsheetRow = Record<string, string>;
+type CsvRow = Record<string, string>;
 
 type EventPlayerIdentityRow = {
   player_id: string;
@@ -130,9 +130,9 @@ export async function importPlayersCsv(formData: FormData) {
   let fileName = "players.csv";
 
   try {
-    const uploaded = await readUploadedSheet(formData.get("file"));
+    const uploaded = await readUploadedCsv(formData.get("file"));
     fileName = uploaded.name;
-    const rows: SpreadsheetRow[] = uploaded.rows;
+    const rows: CsvRow[] = uploaded.rows;
 
     if (rows.length === 0) {
       await logImportFailureAndRedirect({
@@ -148,12 +148,10 @@ export async function importPlayersCsv(formData: FormData) {
       });
     }
 
-    const normalizedRows = rows.map((row: SpreadsheetRow) => ({
+    const normalizedRows = rows.map((row: CsvRow) => ({
       name: row.name ?? row.Name ?? row["이름"] ?? "",
       gender: row.gender ?? row.Gender ?? row["성별"] ?? "",
       level: row.level ?? row.Level ?? row["급수"] ?? "",
-      phone: row.phone ?? row.Phone ?? row["연락처"] ?? "",
-      memo: row.memo ?? row.Memo ?? row["메모"] ?? "",
       affiliation: row.affiliation ?? row.Affiliation ?? row["소속"] ?? "",
       english_id: row.english_id ?? row.englishId ?? row.EnglishId ?? row["LDAP"] ?? row["영문ID"] ?? "",
       national_level: row.national_level ?? row.nationalLevel ?? row.NationalLevel ?? row["전국급수"] ?? row["전국 급수"] ?? "",
@@ -232,8 +230,6 @@ export async function importPlayersCsv(formData: FormData) {
             name: row.name || null,
             gender: row.gender || null,
             level: row.level || null,
-            phone: row.phone || null,
-            memo: row.memo || null,
             affiliation: row.affiliation || null,
             english_id: row.english_id || null,
             national_level: row.national_level || null,
@@ -273,7 +269,7 @@ export async function importPlayersCsv(formData: FormData) {
           player_id: playerId,
           team: row.team || null,
           seed: row.seed && !Number.isNaN(seed) ? seed : null,
-          note: row.memo || null,
+          note: null,
         };
       })
       .filter((row): row is NonNullable<typeof row> => Boolean(row));
@@ -318,9 +314,9 @@ export async function importMatchesCsv(formData: FormData) {
   let fileName = "matches.csv";
 
   try {
-    const uploaded = await readUploadedSheet(formData.get("file"));
+    const uploaded = await readUploadedCsv(formData.get("file"));
     fileName = uploaded.name;
-    const rows: SpreadsheetRow[] = uploaded.rows;
+    const rows: CsvRow[] = uploaded.rows;
 
     if (rows.length === 0) {
       await logImportFailureAndRedirect({
@@ -336,7 +332,7 @@ export async function importMatchesCsv(formData: FormData) {
       });
     }
 
-    const normalizedRows = rows.map((row: SpreadsheetRow) => ({
+    const normalizedRows = rows.map((row: CsvRow) => ({
       round_name: row.round_name ?? row.roundName ?? "",
       group_name: row.group_name ?? row.groupName ?? "",
       match_no: row.match_no ?? row.matchNo ?? "",

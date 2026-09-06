@@ -1,5 +1,3 @@
-import * as XLSX from "xlsx";
-
 function parseCsvLine(line: string) {
   const cells: string[] = [];
   let current = "";
@@ -52,20 +50,7 @@ export function parseCsv(text: string) {
   return { headers, rows };
 }
 
-function normalizeSheetRows(rows: unknown[]) {
-  return rows.map((row) => {
-    if (!row || typeof row !== "object") {
-      return {} as Record<string, string>;
-    }
-
-    return Object.entries(row as Record<string, unknown>).reduce<Record<string, string>>((accumulator, [key, value]) => {
-      accumulator[key] = value == null ? "" : String(value).trim();
-      return accumulator;
-    }, {});
-  });
-}
-
-export async function readUploadedSheet(file: FormDataEntryValue | null) {
+export async function readUploadedCsv(file: FormDataEntryValue | null) {
   if (!(file instanceof File)) {
     throw new Error("파일을 선택해주세요.");
   }
@@ -81,27 +66,5 @@ export async function readUploadedSheet(file: FormDataEntryValue | null) {
     };
   }
 
-  if (lowerName.endsWith(".xlsx") || lowerName.endsWith(".xls")) {
-    const buffer = await file.arrayBuffer();
-    const workbook = XLSX.read(buffer, { type: "array" });
-    const firstSheetName = workbook.SheetNames[0];
-
-    if (!firstSheetName) {
-      throw new Error("엑셀 시트를 찾을 수 없습니다.");
-    }
-
-    const sheet = workbook.Sheets[firstSheetName];
-    const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
-      defval: "",
-      raw: false,
-    });
-
-    return {
-      name: file.name,
-      rows: normalizeSheetRows(rows),
-      format: "xlsx" as const,
-    };
-  }
-
-  throw new Error("CSV, XLSX, XLS 파일만 업로드할 수 있습니다.");
+  throw new Error("CSV 파일만 업로드할 수 있습니다.");
 }
