@@ -187,8 +187,8 @@ When local checks pass:
 
 ## 9. Current caution
 
-Spreadsheet parsing currently uses `xlsx` and `npm audit` reports a high-severity advisory for that package family.
+File parsing is intentionally limited to CSV files only.
 
 Recommended short-term operational rule:
 
-- prefer CSV in production use until parser hardening/replacement is decided
+- use CSV templates for production imports

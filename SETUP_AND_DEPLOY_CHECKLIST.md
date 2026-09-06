@@ -12,7 +12,7 @@ Implemented:
 - Match create/edit/delete/reassign/reorder
 - Public bracket page by `public_uuid`
 - Staff management
-- CSV / XLSX / XLS import
+- CSV import
 - Import preview before save
 - Row-level import error reporting
 - Public board auto-refresh
@@ -130,7 +130,7 @@ Expected first-run flow:
 ### Imports
 
 - Upload roster CSV
-- Upload roster XLSX
+- Upload roster CSV template
 - Upload match CSV
 - Force one invalid row and confirm row-level error report appears
 
@@ -174,19 +174,9 @@ Add:
 
 ## 8. Known caveats
 
-### XLSX package security warning
+### CSV upload scope
 
-Current implementation uses:
-
-- `xlsx@^0.18.5`
-
-`npm audit` reports a high-severity advisory for this package family.
-
-Before production launch, review one of these options:
-
-1. Replace with a safer maintained parser
-2. Move spreadsheet parsing to a trusted backend-only environment with stricter file controls
-3. Limit accepted files operationally and prefer CSV when possible
+File upload is intentionally limited to CSV files only.
 
 ### Import behavior
 
@@ -212,12 +202,11 @@ That is good enough for MVP. If you need near-instant updates later, add:
 
 Priority order:
 
-1. Replace or harden XLSX parsing path
-2. Normalize dashboard UI/components
-3. Add import “predicted changes” summary before commit
-4. Add explicit event/member search/filter UI
-5. Add match drag-and-drop ordering
-6. Add Supabase Realtime instead of timed refresh
+1. Normalize dashboard UI/components
+2. Add import “predicted changes” summary before commit
+3. Add explicit event/member search/filter UI
+4. Add match drag-and-drop ordering
+5. Add Supabase Realtime instead of timed refresh
 
 ---
 
