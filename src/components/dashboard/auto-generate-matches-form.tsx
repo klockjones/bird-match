@@ -24,10 +24,35 @@ type GeneratedMatch = {
   sortOrder: number;
   roundName: string;
   courtNo: string;
+  scheduledAt: string | null;
   type: string;
   teamA: Team;
   teamB: Team;
 };
+
+function shiftDateByDays(dateStr: string, days: number): string {
+  if (days === 0) return dateStr;
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const shifted = new Date(Date.UTC(year, month - 1, day + days));
+  return shifted.toISOString().slice(0, 10);
+}
+
+/**
+ * Computes the "YYYY-MM-DDTHH:MM" for a given round, matching the exact
+ * shape `<input type="datetime-local">` produces on the manual match form —
+ * plain local wall-clock text, no timezone conversion — so auto-generated
+ * and manually-created matches are stored consistently. Rounds roll a
+ * calendar day forward if a start time + round offset crosses midnight.
+ */
+function computeRoundTime(eventDate: string, startTime: string, roundMinutes: number, roundIndex: number): string {
+  const [hours, minutes] = startTime.split(":").map(Number);
+  const totalMinutes = hours * 60 + minutes + roundMinutes * roundIndex;
+  const dayOffset = Math.floor(totalMinutes / 1440);
+  const minutesInDay = ((totalMinutes % 1440) + 1440) % 1440;
+  const resultHours = String(Math.floor(minutesInDay / 60)).padStart(2, "0");
+  const resultMinutes = String(minutesInDay % 60).padStart(2, "0");
+  return `${shiftDateByDays(eventDate, dayOffset)}T${resultHours}:${resultMinutes}`;
+}
 
 function shuffle<T>(list: T[]): T[] {
   const copy = [...list];
@@ -407,6 +432,9 @@ function generateBracket(
   totalGames: number,
   startMatchNo: number,
   startSortOrder: number,
+  eventDate: string | null,
+  startTime: string,
+  roundMinutes: number,
 ): GeneratedMatch[] {
   const generated: GeneratedMatch[] = [];
   const usedMatchupKeys = new Set<string>();
@@ -440,11 +468,13 @@ function generateBracket(
       [...teamA.players, ...teamB.players].forEach((item) => {
         playCount.set(item.player.id, playCountOf(item, playCount) + 1);
       });
+      const roundIndex = Math.floor(index / courtCount);
       generated.push({
         matchNo: startMatchNo + index,
         sortOrder: startSortOrder + index,
-        roundName: `${Math.floor(index / courtCount) + 1}R`,
+        roundName: `${roundIndex + 1}R`,
         courtNo: `${(index % courtCount) + 1}코트`,
+        scheduledAt: eventDate && startTime ? computeRoundTime(eventDate, startTime, roundMinutes, roundIndex) : null,
         type: teamA.type === teamB.type ? teamA.type : "혼합",
         teamA,
         teamB,
@@ -462,13 +492,24 @@ function playerLabel(item: EventPlayerItem) {
 export function AutoGenerateMatchesForm({ event, participants, nextMatchNo, nextSortOrder }: AutoGenerateMatchesFormProps) {
   const [courtCount, setCourtCount] = useState(2);
   const [totalGames, setTotalGames] = useState(8);
+  const [startTime, setStartTime] = useState("");
+  const [roundMinutes, setRoundMinutes] = useState(15);
   const [generated, setGenerated] = useState<GeneratedMatch[] | null>(null);
 
   const eligible = participants.filter((item) => item.player.gender && item.player.regional_level);
   const excluded = participants.filter((item) => !item.player.gender || !item.player.regional_level);
 
   function handleGenerate() {
-    const next = generateBracket(eligible, Math.max(1, courtCount), Math.max(1, totalGames), nextMatchNo, nextSortOrder);
+    const next = generateBracket(
+      eligible,
+      Math.max(1, courtCount),
+      Math.max(1, totalGames),
+      nextMatchNo,
+      nextSortOrder,
+      event.event_date,
+      startTime,
+      Math.max(1, roundMinutes),
+    );
     setGenerated(next);
   }
 
@@ -479,6 +520,7 @@ export function AutoGenerateMatchesForm({ event, participants, nextMatchNo, next
           sortOrder: match.sortOrder,
           roundName: match.roundName,
           courtNo: match.courtNo,
+          scheduledAt: match.scheduledAt || undefined,
           playerA1: match.teamA.players[0].player.id,
           playerA2: match.teamA.players[1].player.id,
           playerB1: match.teamB.players[0].player.id,
@@ -504,7 +546,21 @@ export function AutoGenerateMatchesForm({ event, participants, nextMatchNo, next
             <span>총 경기 수</span>
             <input type="number" min="1" value={totalGames} onChange={(changeEvent) => setTotalGames(Number(changeEvent.target.value))} />
           </label>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>시작 시간 (선택)</span>
+            <input type="time" value={startTime} onChange={(changeEvent) => setStartTime(changeEvent.target.value)} />
+          </label>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>라운드 간격(분)</span>
+            <input type="number" min="1" value={roundMinutes} onChange={(changeEvent) => setRoundMinutes(Number(changeEvent.target.value))} />
+          </label>
         </div>
+
+        {startTime && !event.event_date ? (
+          <p className="admin-inline-message error" style={{ margin: 0 }}>
+            일정에 날짜가 등록되어 있지 않아 시작 시간을 적용할 수 없습니다. 일정 관리에서 날짜를 먼저 등록해주세요.
+          </p>
+        ) : null}
 
         <div className="muted-text">참가 가능 인원: {eligible.length}명 (성별·지역급수가 등록된 참가자만 대상)</div>
 
@@ -539,7 +595,10 @@ export function AutoGenerateMatchesForm({ event, participants, nextMatchNo, next
                     <div className="admin-match-top">
                       <div>
                         <h3 className="admin-match-title">{match.matchNo} 경기</h3>
-                        <p className="admin-match-subtitle">{match.roundName} · {match.courtNo} · {match.type}</p>
+                        <p className="admin-match-subtitle">
+                          {match.roundName} · {match.courtNo} · {match.type}
+                          {match.scheduledAt ? ` · ${match.scheduledAt.slice(11, 16)}` : ""}
+                        </p>
                       </div>
                     </div>
                     <div className="admin-sides-grid">

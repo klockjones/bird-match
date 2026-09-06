@@ -288,6 +288,7 @@ export async function createGeneratedMatches(formData: FormData) {
         match_no: generated.matchNo,
         round_name: generated.roundName || null,
         court_no: generated.courtNo || null,
+        scheduled_at: generated.scheduledAt || null,
         status: "waiting",
         sort_order: generated.sortOrder,
         note: generated.note || null,

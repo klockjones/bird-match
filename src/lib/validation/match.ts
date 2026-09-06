@@ -155,6 +155,7 @@ export const generatedMatchSchema = z
     sortOrder: z.number().int().min(0, "정렬 순서는 0 이상이어야 합니다."),
     roundName: z.string().trim().max(50).optional(),
     courtNo: z.string().trim().max(30).optional(),
+    scheduledAt: z.string().trim().optional(),
     note: z.string().trim().max(200).optional(),
     playerA1: z.string().uuid(),
     playerA2: z.string().uuid(),
