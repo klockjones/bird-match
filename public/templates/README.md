@@ -2,22 +2,22 @@
 
 ## Files
 
-- `roster-template.xlsx`
-- `matches-template.xlsx`
+- `roster-template.csv`
+- `matches-template.csv`
 
-Required columns are highlighted with a yellow header cell in each template.
+Required columns are documented below for each CSV template.
 
 ## How to use
 
-1. Open the XLSX file in Excel or Google Sheets
-2. Fill in your real data under the header row (roster template ships with no sample rows; matches template keeps sample rows to show the shape)
+1. Open the CSV file in Excel, Google Sheets, or a text editor
+2. Fill in your real data under the header row
 3. Keep the header row unchanged, or rename it to any recognized alias (see below)
-4. Save as XLSX, or export to CSV if needed
+4. Save/export as CSV
 5. Upload from `/dashboard/[eventId]/imports`
 
 ## Roster columns
 
-Header order in `roster-template.xlsx`, with the Korean labels shown in the file and the underlying field each maps to:
+Header order in `roster-template.csv`, with the underlying field each maps to:
 
 - 소속 → `affiliation`
 - LDAP → `english_id` (aliases: `영문ID`, `english_id`, `englishId`)
@@ -25,9 +25,8 @@ Header order in `roster-template.xlsx`, with the Korean labels shown in the file
 - 성별 → `gender`
 - 전국급수 → `national_level` (alias: `전국 급수`)
 - 지역급수 → `regional_level` (alias: `지역 급수`)
-- 메모 → `memo`
 
-Also still accepted if present (not part of the default template): `level`(급수), `phone`(연락처), `team`(팀), `seed`(시드).
+Also still accepted if present (not part of the default template): `level`(급수).
 
 Notes:
 
