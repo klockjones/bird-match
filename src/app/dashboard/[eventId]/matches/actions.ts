@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { toKoreaTimestamp } from "@/lib/utils/format-date";
 import { createGeneratedMatchesSchema, createMatchSchema, deleteAllMatchesSchema, deleteMatchSchema, updateMatchSchema, updateMatchScoreSchema } from "@/lib/validation/match";
 
 async function requireUser() {
@@ -86,7 +87,7 @@ export async function createMatch(formData: FormData) {
       match_no: values.matchNo,
       court_no: values.courtNo || null,
       status: values.status,
-      scheduled_at: values.scheduledAt || null,
+      scheduled_at: values.scheduledAt ? toKoreaTimestamp(values.scheduledAt) : null,
       sort_order: values.sortOrder,
       note: values.note || null,
     })
@@ -160,7 +161,7 @@ export async function updateMatch(formData: FormData) {
       match_no: values.matchNo,
       court_no: values.courtNo || null,
       status: values.status,
-      scheduled_at: values.scheduledAt || null,
+      scheduled_at: values.scheduledAt ? toKoreaTimestamp(values.scheduledAt) : null,
       sort_order: values.sortOrder,
       team1_score: values.team1Score,
       team2_score: values.team2Score,
@@ -207,10 +208,8 @@ export async function updateMatchScore(formData: FormData) {
   const parsed = updateMatchScoreSchema.safeParse({
     eventId: formData.get("eventId"),
     matchId: formData.get("matchId"),
-    status: formData.get("status"),
     team1Score: formData.get("team1Score"),
     team2Score: formData.get("team2Score"),
-    winnerSide: formData.get("winnerSide") ?? "",
     note: formData.get("note"),
   });
 
@@ -220,14 +219,18 @@ export async function updateMatchScore(formData: FormData) {
   }
 
   const values = parsed.data;
-  const nextWinnerSide = values.status === "done" ? values.winnerSide || null : null;
-  const startedAt = values.status === "done" ? new Date().toISOString() : null;
-  const endedAt = values.status === "done" ? new Date().toISOString() : null;
+  // A decisive score (badminton has no ties) means the match is over — status and winner
+  // follow the score automatically instead of requiring a separate manual toggle.
+  const isDecided = values.team1Score !== values.team2Score;
+  const nextStatus = isDecided ? "done" : "waiting";
+  const nextWinnerSide = isDecided ? (values.team1Score > values.team2Score ? "A" : "B") : null;
+  const startedAt = isDecided ? new Date().toISOString() : null;
+  const endedAt = isDecided ? new Date().toISOString() : null;
 
   const { error } = await supabase
     .from("matches")
     .update({
-      status: values.status,
+      status: nextStatus,
       team1_score: values.team1Score,
       team2_score: values.team2Score,
       winner_side: nextWinnerSide,
@@ -288,7 +291,7 @@ export async function createGeneratedMatches(formData: FormData) {
         match_no: generated.matchNo,
         round_name: generated.roundName || null,
         court_no: generated.courtNo || null,
-        scheduled_at: generated.scheduledAt || null,
+        scheduled_at: generated.scheduledAt ? toKoreaTimestamp(generated.scheduledAt) : null,
         status: "waiting",
         sort_order: generated.sortOrder,
         note: generated.note || null,

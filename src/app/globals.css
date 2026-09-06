@@ -619,11 +619,6 @@ a:focus-visible {
   gap: 10px;
 }
 
-.match-card.current {
-  border-color: #93c5fd;
-  box-shadow: 0 16px 34px rgba(37, 99, 235, 0.14);
-}
-
 .match-card-flash {
   animation: matchCardFlash 1.6s ease-out;
 }
@@ -729,25 +724,20 @@ a:focus-visible {
   flex: 1;
   min-width: 0;
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px;
+  flex-direction: column;
+  gap: 4px;
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
 .side-player {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 6px;
 }
 
 .side-player .team-dot {
   margin-right: 0;
-}
-
-.side-player-sep {
-  color: #cbd5e1;
 }
 
 .side-player-name {

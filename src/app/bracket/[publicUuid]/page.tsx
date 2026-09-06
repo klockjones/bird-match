@@ -94,7 +94,6 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
       .sort((left, right) => left.side.localeCompare(right.side) || left.position - right.position),
   })) as MatchItem[];
 
-  const nextMatchId = matchList.find((match) => match.status !== "done")?.id ?? null;
   const roundCount = new Set(matchList.map((match) => match.round_name).filter(Boolean)).size;
 
   const courtOptions = [...new Set(matchList.map((match) => match.court_no).filter((court): court is string => Boolean(court)))];
@@ -194,14 +193,13 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
         ) : (
           <div className="matchboard-queue-grid">
             {visibleMatches.map((match) => {
-              const isNext = match.id === nextMatchId;
               const matchType = getDoublesTypeLabel(match.match_players.map((slot) => slot.player));
               const isDecided = match.status === "done" && Boolean(match.winner_side);
 
               return (
                 <MatchCardFlash
                   key={match.id}
-                  className={`match-card${isNext ? " current" : ""}`}
+                  className="match-card"
                   team1Score={match.team1_score}
                   team2Score={match.team2_score}
                   status={match.status}
@@ -210,18 +208,18 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
                     {match.round_name ? <span className="match-tag">{match.round_name}</span> : null}
                     <span className="match-tag">GAME {String(match.match_no).padStart(2, "0")}</span>
                     <span className="match-tag type">{matchType}</span>
+                    <span className="match-tag">{match.court_no ?? "코트 미정"}</span>
                     <span className="match-row-time">{sharedDate ? formatTimeOnly(match.scheduled_at) : formatDateTime(match.scheduled_at)}</span>
-                    <span className={`status-chip ${isNext ? "next" : match.status === "done" ? "done" : "waiting"}`}>
-                      {isNext ? "다음 경기" : getMatchStatusLabel(match.status)}
+                    <span className={`status-chip ${match.status === "done" ? "done" : "waiting"}`}>
+                      {getMatchStatusLabel(match.status)}
                     </span>
                   </div>
 
                   <div className={`match-row-side${match.winner_side === "A" ? " won" : isDecided ? " lost" : ""}`}>
                     <span className="side-badge">A</span>
                     <span className="side-names">
-                      {getSidePlayers(match, "A").map((slot, index) => (
+                      {getSidePlayers(match, "A").map((slot) => (
                         <span key={slot.player.id} className="side-player">
-                          {index > 0 ? <span className="side-player-sep">·</span> : null}
                           <span className="team-dot" style={getTeamAccentStyle(slot.player.affiliation)} aria-hidden />
                           <span className="side-player-name">{getPlayerIdentity(slot.player)}</span>
                           {slot.player.affiliation ? <span className="side-player-team">{slot.player.affiliation}</span> : null}
@@ -234,9 +232,8 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
                   <div className={`match-row-side${match.winner_side === "B" ? " won" : isDecided ? " lost" : ""}`}>
                     <span className="side-badge">B</span>
                     <span className="side-names">
-                      {getSidePlayers(match, "B").map((slot, index) => (
+                      {getSidePlayers(match, "B").map((slot) => (
                         <span key={slot.player.id} className="side-player">
-                          {index > 0 ? <span className="side-player-sep">·</span> : null}
                           <span className="team-dot" style={getTeamAccentStyle(slot.player.affiliation)} aria-hidden />
                           <span className="side-player-name">{getPlayerIdentity(slot.player)}</span>
                           {slot.player.affiliation ? <span className="side-player-team">{slot.player.affiliation}</span> : null}
