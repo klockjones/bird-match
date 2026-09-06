@@ -125,7 +125,7 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
           <p className="surface-copy" style={{ margin: 0 }}>요약을 먼저 보고, 필요한 경기만 열어서 수정하는 흐름으로 운영합니다.</p>
         </div>
 
-        <div className="operator-menu-link-row">
+        <div className="dashboard-quick-actions">
           <Link href={`/dashboard/${eventId}/matches/new`} className="event-launcher-link">경기 생성</Link>
           <Link href={`/dashboard/${eventId}/matches/auto`} className="event-launcher-link">대진표 자동 생성</Link>
         </div>

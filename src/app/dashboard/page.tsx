@@ -5,6 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { EventListItem } from "@/lib/types/event";
 import { formatDateTime } from "@/lib/utils/format-date";
 import { getEventStatusLabel } from "@/lib/utils/status-labels";
+import { getTeamAccentStyle } from "@/lib/utils/team-accent";
 
 type DashboardPageProps = {
   searchParams?: Promise<{
@@ -89,7 +90,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
       <section className="dashboard-section">
         <div className="dashboard-quick-actions">
-          <Link href="/dashboard/new" className="dashboard-link-chip">새 일정 만들기</Link>
+          <Link href="/dashboard/new" className="dashboard-link-chip primary">새 일정 만들기</Link>
         </div>
 
         <section className="dashboard-section">
@@ -108,7 +109,10 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                 <article key={event.id} className="dashboard-event-card">
                   <div className="dashboard-event-top">
                     <div>
-                      <h3 className="dashboard-event-title">{event.title}</h3>
+                      <h3 className="dashboard-event-title">
+                        <span className="team-dot" style={getTeamAccentStyle(event.title)} aria-hidden />
+                        {event.title}
+                      </h3>
                       <p className="dashboard-event-subtitle">
                         {event.event_type === "blue_white" ? "청백전" : "일반전"} · {event.location ?? "장소 미정"}
                       </p>
@@ -152,6 +156,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                 return (
                   <Link key={event.id} href={`/dashboard/${event.id}`} className="dashboard-event-card-compact">
                     <div>
+                      <span className="team-dot" style={getTeamAccentStyle(event.title)} aria-hidden />
                       <span className="dashboard-event-title-compact">{event.title}</span>
                       <span className="muted-text"> · {event.event_date ?? "날짜 미정"} · {event.location ?? "장소 미정"}</span>
                     </div>

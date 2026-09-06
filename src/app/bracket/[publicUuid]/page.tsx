@@ -6,7 +6,7 @@ import type { EventDetailItem } from "@/lib/types/event";
 import type { MatchItem, MatchPlayerSlot } from "@/lib/types/match";
 import type { PlayerItem } from "@/lib/types/player";
 import { formatDateOnly, formatDateTime, formatTimeOnly } from "@/lib/utils/format-date";
-import { getPlayerIdentity } from "@/lib/utils/player-display";
+import { getDoublesTypeLabel, getPlayerIdentity } from "@/lib/utils/player-display";
 import { getMatchStatusLabel } from "@/lib/utils/status-labels";
 import { getTeamAccentStyle } from "@/lib/utils/team-accent";
 
@@ -16,6 +16,7 @@ type BracketPageProps = {
   }>;
   searchParams?: Promise<{
     court?: string;
+    status?: string;
   }>;
 };
 
@@ -92,13 +93,32 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
       .sort((left, right) => left.side.localeCompare(right.side) || left.position - right.position),
   })) as MatchItem[];
 
-  const finishedCount = matchList.filter((match) => match.status === "done").length;
-  const waitingCount = matchList.length - finishedCount;
   const nextMatchId = matchList.find((match) => match.status !== "done")?.id ?? null;
+  const roundCount = new Set(matchList.map((match) => match.round_name).filter(Boolean)).size;
 
   const courtOptions = [...new Set(matchList.map((match) => match.court_no).filter((court): court is string => Boolean(court)))];
   const selectedCourt = query?.court && courtOptions.includes(query.court) ? query.court : null;
-  const visibleMatches = selectedCourt ? matchList.filter((match) => match.court_no === selectedCourt) : matchList;
+  const selectedStatus = query?.status === "waiting" || query?.status === "done" ? query.status : null;
+  const courtFilteredMatches = matchList.filter((match) => !selectedCourt || match.court_no === selectedCourt);
+  const finishedCount = courtFilteredMatches.filter((match) => match.status === "done").length;
+  const waitingCount = courtFilteredMatches.length - finishedCount;
+  const visibleMatches = courtFilteredMatches.filter((match) => !selectedStatus || match.status === selectedStatus);
+
+  const statusQuery = (value: string) => {
+    const params = new URLSearchParams();
+    if (selectedCourt) params.set("court", selectedCourt);
+    if (value !== "all") params.set("status", value);
+    const search = params.toString();
+    return search ? `?${search}` : "?";
+  };
+
+  const courtQuery = (value: string | null) => {
+    const params = new URLSearchParams();
+    if (value) params.set("court", value);
+    if (selectedStatus) params.set("status", selectedStatus);
+    const search = params.toString();
+    return search ? `?${search}` : "?";
+  };
 
   const scheduledDates = new Set(
     matchList.map((match) => (match.scheduled_at ? formatDateOnly(match.scheduled_at) : null)).filter((value): value is string => Boolean(value)),
@@ -125,19 +145,11 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
   return (
     <main className="page-shell matchboard-shell">
       <section className="matchboard-hero">
-        <div className="matchboard-hero-top">
-          <div>
-            <h1 className="matchboard-title">{detail.title}</h1>
-            <p className="matchboard-subtitle">
-              {detail.location ?? "장소 미정"} · {detail.event_date ?? "날짜 미정"}
-            </p>
-            <div className="matchboard-stat-grid" style={{ marginTop: 18 }}>
-              <div className="matchboard-stat-card">전체 경기 수: {matchList.length}</div>
-              <div className="matchboard-stat-card">대기 경기 수: {waitingCount}</div>
-              <div className="matchboard-stat-card">완료 경기 수: {finishedCount}</div>
-            </div>
-          </div>
-        </div>
+        <h1 className="matchboard-title">{detail.title}</h1>
+        <p className="matchboard-date">{detail.event_date ?? "날짜 미정"}</p>
+        <p className="matchboard-subtitle">
+          {detail.location ?? "장소 미정"} · {matchList.length}경기 · {roundCount}라운드
+        </p>
 
         {detail.event_type === "blue_white" ? (
           <div className="matchboard-team-score-grid">
@@ -156,23 +168,22 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
       <AutoRefreshControl intervalSeconds={15} />
 
       <section className="queue-section">
-        <div>
-          <h2 className="surface-title">경기 현황</h2>
-          <p className="surface-copy">
-            코트 기준 경기들을 순서대로 보여줍니다.{sharedDate ? ` 날짜: ${sharedDate}` : ""}
-          </p>
-        </div>
-
         {courtOptions.length > 1 ? (
           <div className="filter-pill-row">
-            <a href="?" className={`filter-pill${selectedCourt ? "" : " active"}`}>전체</a>
+            <a href={courtQuery(null)} className={`filter-pill${selectedCourt ? "" : " active"}`}>전체 코트</a>
             {courtOptions.map((court) => (
-              <a key={court} href={`?court=${encodeURIComponent(court)}`} className={`filter-pill${selectedCourt === court ? " active" : ""}`}>
+              <a key={court} href={courtQuery(court)} className={`filter-pill${selectedCourt === court ? " active" : ""}`}>
                 {court}
               </a>
             ))}
           </div>
         ) : null}
+
+        <div className="filter-pill-row">
+          <a href={statusQuery("all")} className={`filter-pill${selectedStatus ? "" : " active"}`}>전체 {courtFilteredMatches.length}</a>
+          <a href={statusQuery("waiting")} className={`filter-pill${selectedStatus === "waiting" ? " active" : ""}`}>대기 {waitingCount}</a>
+          <a href={statusQuery("done")} className={`filter-pill${selectedStatus === "done" ? " active" : ""}`}>완료 {finishedCount}</a>
+        </div>
 
         {visibleMatches.length === 0 ? (
           <div className="empty-card">표시할 경기가 없습니다.</div>
@@ -180,6 +191,8 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
           <div className="matchboard-queue-grid">
             {visibleMatches.map((match) => {
               const isNext = match.id === nextMatchId;
+              const matchType = getDoublesTypeLabel(match.match_players.map((slot) => slot.player));
+              const isDecided = match.status === "done" && Boolean(match.winner_side);
 
               return (
                 <MatchCardFlash
@@ -189,63 +202,45 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
                   team2Score={match.team2_score}
                   status={match.status}
                 >
-                  <div className="match-line">
-                    <div>
-                      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-                        <h3 className="match-heading">{match.match_no} 경기</h3>
-                        {match.round_name ? <span className="match-meta-chip">{match.round_name}</span> : null}
-                        <span className="match-meta-chip">{match.court_no ?? "코트 미정"}</span>
-                      </div>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <span className={`status-chip ${isNext ? "next" : match.status === "done" ? "done" : "waiting"}`}>
-                        {isNext ? "다음 경기" : getMatchStatusLabel(match.status)}
-                      </span>
-                      <div className="muted-text" style={{ marginTop: 8 }}>
-                        {sharedDate ? formatTimeOnly(match.scheduled_at) : formatDateTime(match.scheduled_at)}
-                      </div>
-                    </div>
+                  <div className="match-row-header">
+                    {match.round_name ? <span className="match-tag">{match.round_name}</span> : null}
+                    <span className="match-tag">GAME {String(match.match_no).padStart(2, "0")}</span>
+                    <span className="match-tag type">{matchType}</span>
+                    <span className="match-row-time">{sharedDate ? formatTimeOnly(match.scheduled_at) : formatDateTime(match.scheduled_at)}</span>
+                    <span className={`status-chip ${isNext ? "next" : match.status === "done" ? "done" : "waiting"}`}>
+                      {isNext ? "다음 경기" : getMatchStatusLabel(match.status)}
+                    </span>
                   </div>
 
-                  <div className="match-side-line">
-                    <div className={`pair-unit${match.status === "done" && match.winner_side === "A" ? " won" : ""}`}>
-                      <div className="pair-row">
-                        <div className="pair-badge-slot">
-                          {match.status === "done" && match.winner_side === "A" ? <span className="pair-win-badge">✓ 승</span> : null}
-                        </div>
-                        <div className="pair-left">
-                          <div className="pair-group">
-                          {getSidePlayers(match, "A").map((slot) => (
-                            <div key={`queue-a-${match.id}-${slot.player.id}-${slot.position}`} className="pair-player-card">
-                              <strong className="player-primary-text pair-player-name">{getPlayerIdentity(slot.player)}</strong>
-                              <span className="team-caption pair-affiliation-caption" style={getTeamAccentStyle(slot.player.affiliation ?? playerTeamMap.get(slot.player.id) ?? teamLabel1)}>{slot.player.affiliation ?? playerTeamMap.get(slot.player.id) ?? teamLabel1}</span>
-                            </div>
-                          ))}
-                          </div>
-                        </div>
-                        <span className="match-side-score">{match.status === "done" ? match.team1_score : "–"}</span>
-                      </div>
-                    </div>
+                  <div className={`match-row-side${match.winner_side === "A" ? " won" : isDecided ? " lost" : ""}`}>
+                    <span className="side-badge">A</span>
+                    <span className="side-names">
+                      {getSidePlayers(match, "A").map((slot, index) => (
+                        <span key={slot.player.id} className="side-player">
+                          {index > 0 ? <span className="side-player-sep">·</span> : null}
+                          <span className="team-dot" style={getTeamAccentStyle(slot.player.affiliation)} aria-hidden />
+                          <span className="side-player-name">{getPlayerIdentity(slot.player)}</span>
+                          {slot.player.affiliation ? <span className="side-player-team">{slot.player.affiliation}</span> : null}
+                        </span>
+                      ))}
+                    </span>
+                    {match.status === "done" && match.winner_side === "A" ? <span className="win-tag">승</span> : null}
+                    <span className="side-score">{match.status === "done" ? match.team1_score : "–"}</span>
                   </div>
-                  <div className="match-side-line">
-                    <div className={`pair-unit${match.status === "done" && match.winner_side === "B" ? " won" : ""}`}>
-                      <div className="pair-row">
-                        <div className="pair-badge-slot">
-                          {match.status === "done" && match.winner_side === "B" ? <span className="pair-win-badge">✓ 승</span> : null}
-                        </div>
-                        <div className="pair-left">
-                          <div className="pair-group">
-                          {getSidePlayers(match, "B").map((slot) => (
-                            <div key={`queue-b-${match.id}-${slot.player.id}-${slot.position}`} className="pair-player-card">
-                              <strong className="player-primary-text pair-player-name">{getPlayerIdentity(slot.player)}</strong>
-                              <span className="team-caption pair-affiliation-caption" style={getTeamAccentStyle(slot.player.affiliation ?? playerTeamMap.get(slot.player.id) ?? teamLabel2)}>{slot.player.affiliation ?? playerTeamMap.get(slot.player.id) ?? teamLabel2}</span>
-                            </div>
-                          ))}
-                          </div>
-                        </div>
-                        <span className="match-side-score">{match.status === "done" ? match.team2_score : "–"}</span>
-                      </div>
-                    </div>
+                  <div className={`match-row-side${match.winner_side === "B" ? " won" : isDecided ? " lost" : ""}`}>
+                    <span className="side-badge">B</span>
+                    <span className="side-names">
+                      {getSidePlayers(match, "B").map((slot, index) => (
+                        <span key={slot.player.id} className="side-player">
+                          {index > 0 ? <span className="side-player-sep">·</span> : null}
+                          <span className="team-dot" style={getTeamAccentStyle(slot.player.affiliation)} aria-hidden />
+                          <span className="side-player-name">{getPlayerIdentity(slot.player)}</span>
+                          {slot.player.affiliation ? <span className="side-player-team">{slot.player.affiliation}</span> : null}
+                        </span>
+                      ))}
+                    </span>
+                    {match.status === "done" && match.winner_side === "B" ? <span className="win-tag">승</span> : null}
+                    <span className="side-score">{match.status === "done" ? match.team2_score : "–"}</span>
                   </div>
                 </MatchCardFlash>
               );
