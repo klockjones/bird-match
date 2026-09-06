@@ -1290,6 +1290,11 @@ a:focus-visible {
   font-weight: var(--weight-bold);
 }
 
+.role-chip.admin {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
 .role-chip.owner {
   background: #dbeafe;
   color: #1d4ed8;
@@ -1629,6 +1634,12 @@ a:focus-visible {
   display: grid;
   justify-items: end;
   gap: 2px;
+}
+
+.operator-topbar-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .operator-topbar-name {
