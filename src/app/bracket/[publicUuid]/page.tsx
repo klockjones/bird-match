@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AutoRefreshControl } from "@/components/bracket/auto-refresh-control";
 import { MatchCardFlash } from "@/components/bracket/match-card-flash";
@@ -150,6 +151,9 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
         <p className="matchboard-subtitle">
           {detail.location ?? "장소 미정"} · {matchList.length}경기 · {roundCount}라운드
         </p>
+        <div className="matchboard-hero-actions">
+          <Link href="/login" className="matchboard-operator-link">운영자 모드</Link>
+        </div>
 
         {detail.event_type === "blue_white" ? (
           <div className="matchboard-team-score-grid">
