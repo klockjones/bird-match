@@ -1,14 +1,14 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { readUploadedSheet } from "@/lib/imports/csv";
+import { readUploadedCsv } from "@/lib/imports/csv";
 
 type ColumnRule = {
   label: string;
   aliases: string[];
 };
 
-type SpreadsheetImportFormProps = {
+type CsvImportFormProps = {
   title: string;
   templateUrl: string;
   submitLabel: string;
@@ -24,12 +24,12 @@ type SpreadsheetImportFormProps = {
 
 type PreviewState = {
   fileName: string;
-  format: "csv" | "xlsx";
+  format: "csv";
   headers: string[];
   rows: Array<Record<string, string>>;
 };
 
-export function SpreadsheetImportForm({
+export function CsvImportForm({
   title,
   templateUrl,
   submitLabel,
@@ -38,7 +38,7 @@ export function SpreadsheetImportForm({
   columnRules,
   summaryItems = [],
   requiredColumnsNote = "템플릿의 색칠된 컬럼(노란색)이 필수 입력값입니다.",
-}: SpreadsheetImportFormProps) {
+}: CsvImportFormProps) {
   const [preview, setPreview] = useState<PreviewState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -72,7 +72,7 @@ export function SpreadsheetImportForm({
     }
 
     try {
-      const parsed = await readUploadedSheet(file);
+      const parsed = await readUploadedCsv(file);
       const headers = [...new Set(parsed.rows.flatMap((row) => Object.keys(row)))];
       setPreview({
         fileName: parsed.name,
@@ -100,7 +100,7 @@ export function SpreadsheetImportForm({
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
           <h2 style={{ margin: 0 }}>{title}</h2>
-          <a href={templateUrl} download style={{ color: "#1d4ed8", fontSize: 14, fontWeight: 700 }}>템플릿 다운로드</a>
+          <a href={templateUrl} download style={{ color: "#1d4ed8", fontSize: 14, fontWeight: 700 }}>CSV 템플릿 다운로드</a>
         </div>
         <p style={{ margin: "8px 0 0", color: "#475569" }}>{requiredColumnsNote}</p>
       </div>
@@ -108,7 +108,8 @@ export function SpreadsheetImportForm({
       <input
         name="file"
         type="file"
-        accept=".csv,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        accept=".csv,text/csv"
+        aria-label="CSV 파일 업로드"
         required
         onChange={handleFileChange}
       />

@@ -27,7 +27,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
     redirect("/login");
   }
 
-  const [{ data: event, error }, { data: eventPlayers }, { data: matchRows }] = await Promise.all([
+  const [{ data: event, error }, { data: eventPlayers }, { data: matchRows }, { data: currentUserProfile }] = await Promise.all([
     supabase
       .from("events")
       .select("id,title,public_uuid,event_type,status,event_date,location,is_public,scoring_rule,team_label_1,team_label_2,created_at,updated_at")
@@ -35,6 +35,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
       .single(),
     supabase.from("event_players").select("id").eq("event_id", eventId),
     supabase.from("matches").select("id,status").eq("event_id", eventId),
+    supabase.from("users").select("role").eq("id", user.id).single(),
   ]);
 
   if (error || !event) {
@@ -45,6 +46,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
   const participantCount = (eventPlayers ?? []).length;
   const matchTotal = (matchRows ?? []).length;
   const matchDone = (matchRows ?? []).filter((match) => match.status === "done").length;
+  const isAdmin = currentUserProfile?.role === "admin";
 
   return (
     <main className="admin-page-shell">
@@ -96,7 +98,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
               <article className="event-launcher-card">
                 <div className="event-launcher-badge-row" />
                 <h3 className="event-launcher-title">참가자 명단 업로드</h3>
-                <p className="event-launcher-copy">CSV/엑셀 파일로 참가자 명단을 한 번에 일괄 등록합니다.</p>
+                <p className="event-launcher-copy">CSV 파일로 참가자 명단을 한 번에 일괄 등록합니다.</p>
                 <Link className="event-launcher-link" href={`/dashboard/${detail.id}/imports/players`}>참가자 명단 업로드로 이동</Link>
               </article>
               <article className="event-launcher-card">
@@ -134,7 +136,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
               <article className="event-launcher-card">
                 <div className="event-launcher-badge-row" />
                 <h3 className="event-launcher-title">대진표 업로드</h3>
-                <p className="event-launcher-copy">이미 만들어 둔 대진표 파일을 업로드해 경기를 한 번에 등록합니다.</p>
+                <p className="event-launcher-copy">이미 만들어 둔 CSV 대진표를 업로드해 경기를 한 번에 등록합니다.</p>
                 <Link className="event-launcher-link" href={`/dashboard/${detail.id}/imports/matches`}>대진표 업로드로 이동</Link>
               </article>
               <article className="event-launcher-card">
@@ -172,23 +174,25 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
             </div>
           </div>
 
-          <div className="event-launcher-group">
-            <div className="event-launcher-group-header">
-              <span className="event-launcher-group-icon"><ShieldIcon /></span>
-              <div>
-                <h2 className="event-launcher-group-title">5. 운영진 설정</h2>
-                <p className="event-launcher-group-copy">사용자에 대한 운영 권한을 관리합니다.</p>
+          {isAdmin ? (
+            <div className="event-launcher-group">
+              <div className="event-launcher-group-header">
+                <span className="event-launcher-group-icon"><ShieldIcon /></span>
+                <div>
+                  <h2 className="event-launcher-group-title">5. 운영진 설정</h2>
+                  <p className="event-launcher-group-copy">관리자가 사용자에 대한 운영 권한을 관리합니다.</p>
+                </div>
+              </div>
+              <div className="event-launcher-grid">
+                <article className="event-launcher-card">
+                  <div className="event-launcher-badge-row" />
+                  <h3 className="event-launcher-title">운영진 권한 관리</h3>
+                  <p className="event-launcher-copy">이미 가입한 사용자에게 staff / viewer 권한을 추가하고 관리합니다.</p>
+                  <Link className="event-launcher-link" href={`/dashboard/${detail.id}/staff`}>운영진 권한 관리로 이동</Link>
+                </article>
               </div>
             </div>
-            <div className="event-launcher-grid">
-              <article className="event-launcher-card">
-                <div className="event-launcher-badge-row" />
-                <h3 className="event-launcher-title">운영진 권한 관리</h3>
-                <p className="event-launcher-copy">이미 가입한 사용자에게 staff / viewer 권한을 추가하고 관리합니다.</p>
-                <Link className="event-launcher-link" href={`/dashboard/${detail.id}/staff`}>운영진 권한 관리로 이동</Link>
-              </article>
-            </div>
-          </div>
+          ) : null}
         </section>
       </section>
     </main>

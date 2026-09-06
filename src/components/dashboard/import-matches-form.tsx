@@ -1,5 +1,5 @@
 import { importMatchesCsv } from "@/app/dashboard/[eventId]/imports/actions";
-import { SpreadsheetImportForm } from "@/components/dashboard/spreadsheet-import-form";
+import { CsvImportForm } from "@/components/dashboard/csv-import-form";
 
 type ImportMatchesFormProps = {
   eventId: string;
@@ -8,9 +8,9 @@ type ImportMatchesFormProps = {
 
 export function ImportMatchesForm({ eventId, publicUuid }: ImportMatchesFormProps) {
   return (
-    <SpreadsheetImportForm
-      title="대진표 파일 업로드"
-      templateUrl="/templates/matches-template.xlsx"
+    <CsvImportForm
+      title="대진표 CSV 업로드"
+      templateUrl="/templates/matches-template.csv"
       submitLabel="미리보기 확인 후 대진표 업로드"
       action={importMatchesCsv}
       hiddenFields={[

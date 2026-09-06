@@ -84,7 +84,7 @@ export default async function ImportPlayersPage({ params, searchParams }: Import
         </div>
         <OperatorTopBar name={user.user_metadata?.name as string | undefined} />
         <h1 style={{ margin: 0 }}>참가자 명단 업로드</h1>
-        <p className="surface-copy" style={{ margin: 0 }}>{detail.title} 일정의 참가자 명단만 업로드합니다.</p>
+        <p className="surface-copy" style={{ margin: 0 }}>{detail.title} 일정의 참가자 명단 CSV만 업로드합니다.</p>
       </div>
 
       {query?.error ? <p className="admin-inline-message error">{query.error}</p> : null}
@@ -130,7 +130,7 @@ export default async function ImportPlayersPage({ params, searchParams }: Import
       <ImportPlayersForm eventId={eventId} />
 
       <section className="admin-stack">
-        <SectionHeader title="업로드 이력" description="어떤 명단 파일이 몇 건 반영되었는지 확인할 수 있습니다." />
+        <SectionHeader title="업로드 이력" description="어떤 CSV 명단 파일이 몇 건 반영되었는지 확인할 수 있습니다." />
 
         {importLogs.length === 0 ? (
           <EmptyStateCard message="아직 업로드 이력이 없습니다." />
