@@ -30,6 +30,12 @@ export default async function EventStaffPage({ params, searchParams }: EventStaf
     redirect("/login");
   }
 
+  const { data: currentUserProfile } = await supabase.from("users").select("role").eq("id", user.id).single();
+
+  if (currentUserProfile?.role !== "admin") {
+    redirect(`/dashboard/${eventId}?error=${encodeURIComponent("운영진 관리는 관리자만 사용할 수 있습니다.")}`);
+  }
+
   const [{ data: event, error: eventError }, { data: users, error: usersError }, { data: eventStaff, error: staffError }] = await Promise.all([
     supabase
       .from("events")

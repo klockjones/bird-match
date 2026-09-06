@@ -9,7 +9,7 @@ import {
   updateEventStaffRoleSchema,
 } from "@/lib/validation/staff";
 
-async function requireUser() {
+async function requireAdmin() {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -19,11 +19,17 @@ async function requireUser() {
     redirect("/login");
   }
 
-  return { supabase, user };
+  const { data: currentUserProfile } = await supabase.from("users").select("role").eq("id", user.id).single();
+
+  if (currentUserProfile?.role !== "admin") {
+    redirect("/dashboard?error=" + encodeURIComponent("운영진 관리는 관리자만 사용할 수 있습니다."));
+  }
+
+  return { supabase };
 }
 
 export async function assignEventStaff(formData: FormData) {
-  const { supabase } = await requireUser();
+  const { supabase } = await requireAdmin();
 
   const parsed = assignEventStaffSchema.safeParse({
     eventId: formData.get("eventId"),
@@ -53,7 +59,7 @@ export async function assignEventStaff(formData: FormData) {
 }
 
 export async function updateEventStaffRole(formData: FormData) {
-  const { supabase } = await requireUser();
+  const { supabase } = await requireAdmin();
 
   const parsed = updateEventStaffRoleSchema.safeParse({
     eventId: formData.get("eventId"),
@@ -83,7 +89,7 @@ export async function updateEventStaffRole(formData: FormData) {
 }
 
 export async function removeEventStaff(formData: FormData) {
-  const { supabase } = await requireUser();
+  const { supabase } = await requireAdmin();
 
   const parsed = removeEventStaffSchema.safeParse({
     eventId: formData.get("eventId"),
