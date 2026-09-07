@@ -28,14 +28,16 @@ export default async function PlayersPage({ searchParams }: PlayersPageProps) {
   }
 
   const params = await searchParams;
-  const [{ data: players, error }, { data: eventPlayers }] = await Promise.all([
+  const [{ data: players, error }, { data: eventPlayers }, { data: currentUserProfile }] = await Promise.all([
     supabase
       .from("players")
       .select("id,name,gender,level,phone,memo,affiliation,english_id,national_level,regional_level,is_active,created_at")
       .order("created_at", { ascending: false }),
     supabase.from("event_players").select("player_id"),
+    supabase.from("users").select("role").eq("id", user.id).single(),
   ]);
 
+  const isAdmin = currentUserProfile?.role === "admin";
   const playerList = (players ?? []) as PlayerItem[];
   const nationalLevelOptions = [...new Set(playerList.map((player) => player.national_level).filter((value): value is string => Boolean(value)))];
   const regionalLevelOptions = [...new Set(playerList.map((player) => player.regional_level).filter((value): value is string => Boolean(value)))];
@@ -102,7 +104,7 @@ export default async function PlayersPage({ searchParams }: PlayersPageProps) {
                       <input type="hidden" name="isActive" value={player.is_active ? "false" : "true"} />
                       <button type="submit" className="filter-pill">{player.is_active ? "비활성으로 전환" : "활성으로 전환"}</button>
                     </form>
-                    {participationCount === 0 ? (
+                    {isAdmin && participationCount === 0 ? (
                       <form action={deletePlayer}>
                         <input type="hidden" name="playerId" value={player.id} />
                         <HoldToConfirmButton
