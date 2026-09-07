@@ -130,6 +130,7 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
         <div className="dashboard-quick-actions">
           <Link href={`/dashboard/${eventId}/matches/new`} className="event-launcher-link">경기 생성</Link>
           <Link href={`/dashboard/${eventId}/matches/auto`} className="event-launcher-link">대진표 자동 생성</Link>
+          <Link href={`/dashboard/${eventId}/matches/print`} className="event-launcher-link">경기표 인쇄 (A4)</Link>
         </div>
 
         {matchList.length > 0 ? (

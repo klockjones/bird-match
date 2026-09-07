@@ -1721,3 +1721,71 @@ a:focus-visible {
     padding: 16px 0 28px;
   }
 }
+
+.print-page-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 0 60px;
+}
+
+.print-sheet {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 12mm;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12), 0 8px 24px rgba(15, 23, 42, 0.08);
+  box-sizing: border-box;
+}
+
+.print-title {
+  margin: 0;
+  font-size: 20px;
+}
+
+.print-subtitle {
+  margin: 6px 0 16px;
+  color: #475569;
+  font-size: 13px;
+}
+
+.print-match-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.print-match-table th,
+.print-match-table td {
+  border: 1px solid #cbd5e1;
+  padding: 4px 6px;
+  text-align: left;
+}
+
+.print-match-table th {
+  background: #f1f5f9;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-page-shell {
+    padding: 0;
+    gap: 0;
+  }
+
+  .print-sheet {
+    width: auto;
+    min-height: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+}
