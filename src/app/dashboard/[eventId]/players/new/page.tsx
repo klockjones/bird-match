@@ -79,7 +79,7 @@ export default async function NewEventPlayerPage({ params, searchParams }: NewEv
         </div>
         <OperatorTopBar name={user.user_metadata?.name as string | undefined} />
         <h1 style={{ margin: 0 }}>참가 명단 추가 (수동입력)</h1>
-        <p className="surface-copy" style={{ margin: 0 }}>선수 마스터에 없는 사람을 바로 등록하면서 이 일정에 추가합니다.</p>
+        <p className="surface-copy" style={{ margin: 0 }}>{detail.title} 일정 — 선수 마스터에 없는 사람을 바로 등록하면서 이 일정에 추가합니다.</p>
       </div>
 
       {query?.added ? <Toast key={query.t} message="참가자가 추가되었습니다. 이어서 다음 참가자를 등록할 수 있습니다." /> : null}

@@ -24,7 +24,7 @@ export default async function EventSettingsPage({ params, searchParams }: EventS
     redirect("/login");
   }
 
-  const [{ data: event, error }, { data: currentUserProfile }, { data: eventPlayers }, { data: matches }, { data: eventStaff }] = await Promise.all([
+  const [{ data: event, error }, { data: currentUserProfile }, { data: eventPlayers }, { data: matches }] = await Promise.all([
     supabase
       .from("events")
       .select("id,title,public_uuid,event_type,status,event_date,location,is_public,scoring_rule,team_label_1,team_label_2,created_at,updated_at")
@@ -33,7 +33,6 @@ export default async function EventSettingsPage({ params, searchParams }: EventS
     supabase.from("users").select("role").eq("id", user.id).single(),
     supabase.from("event_players").select("id").eq("event_id", eventId),
     supabase.from("matches").select("id").eq("event_id", eventId),
-    supabase.from("event_staff").select("id").eq("event_id", eventId),
   ]);
 
   if (error || !event) {
@@ -64,7 +63,7 @@ export default async function EventSettingsPage({ params, searchParams }: EventS
           <div>
             <h2 style={{ marginBottom: 8, color: "#991b1b" }}>위험 구역</h2>
             <p className="surface-copy" style={{ margin: 0 }}>
-              일정을 삭제하면 참가자 {(eventPlayers ?? []).length}명 · 경기 {(matches ?? []).length}건 · 운영진 {(eventStaff ?? []).length}명이 함께 삭제되며 되돌릴 수 없습니다.
+              일정을 삭제하면 참가자 {(eventPlayers ?? []).length}명 · 경기 {(matches ?? []).length}건이 함께 삭제되며 되돌릴 수 없습니다.
             </p>
           </div>
           <form action={deleteEvent} style={{ justifySelf: "start" }}>

@@ -62,7 +62,7 @@ export default async function NewMatchPage({ params, searchParams }: NewMatchPag
         </div>
         <OperatorTopBar name={user.user_metadata?.name as string | undefined} />
         <h1 style={{ margin: 0 }}>경기 생성</h1>
-        <p className="surface-copy" style={{ margin: 0 }}>일정 참가자를 기준으로 경기 순서와 코트를 등록합니다.</p>
+        <p className="surface-copy" style={{ margin: 0 }}>{detail.title} 일정 — 참가자를 기준으로 경기 순서와 코트를 등록합니다.</p>
       </div>
 
       {query?.created ? <Toast key={query.t} message="경기가 생성되었습니다. 이어서 다음 경기를 등록할 수 있습니다." /> : null}

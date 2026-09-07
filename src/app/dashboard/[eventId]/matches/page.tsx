@@ -101,6 +101,7 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
         </div>
         <OperatorTopBar name={user.user_metadata?.name as string | undefined} />
         <h1 style={{ margin: 0 }}>경기 관리</h1>
+        <p className="surface-copy" style={{ margin: 0 }}>{detail.title} 일정의 경기입니다.</p>
       </div>
 
       {successMessage ? <Toast key={query?.t} message={successMessage} /> : null}

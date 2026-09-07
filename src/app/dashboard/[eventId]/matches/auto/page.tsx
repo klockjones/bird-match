@@ -61,7 +61,7 @@ export default async function AutoMatchesPage({ params, searchParams }: AutoMatc
         </div>
         <OperatorTopBar name={user.user_metadata?.name as string | undefined} />
         <h1 style={{ margin: 0 }}>대진표 자동 생성</h1>
-        <p className="surface-copy" style={{ margin: 0 }}>지역급수를 기준으로 남복/혼복 대진표를 랜덤 생성합니다. 결과를 확인한 뒤 등록하세요.</p>
+        <p className="surface-copy" style={{ margin: 0 }}>{detail.title} 일정 — 지역급수를 기준으로 남복/혼복 대진표를 랜덤 생성합니다. 결과를 확인한 뒤 등록하세요.</p>
       </div>
 
       {query?.error ? <p className="admin-inline-message error">{query.error}</p> : null}

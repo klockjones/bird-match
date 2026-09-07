@@ -74,7 +74,7 @@ export default async function PrintMatchesPage({ params }: PrintMatchesPageProps
           <span>운영자 메뉴로 이동</span>
         </div>
         <h1 style={{ margin: 0 }}>경기표 인쇄 (A4)</h1>
-        <p className="surface-copy" style={{ margin: 0 }}>브라우저 인쇄 대화상자에서 &quot;PDF로 저장&quot;을 선택하면 파일로 저장할 수 있습니다.</p>
+        <p className="surface-copy" style={{ margin: 0 }}>{detail.title} 일정 — 브라우저 인쇄 대화상자에서 &quot;PDF로 저장&quot;을 선택하면 파일로 저장할 수 있습니다.</p>
         <PrintButton />
       </div>
 

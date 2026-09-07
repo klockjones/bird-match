@@ -149,6 +149,7 @@ export default async function EventPlayersPage({ params, searchParams }: EventPl
         </div>
         <OperatorTopBar name={user.user_metadata?.name as string | undefined} />
         <h1 style={{ margin: 0 }}>참가 명단 관리</h1>
+        <p className="surface-copy" style={{ margin: 0 }}>{detail.title} 일정의 참가자 명단입니다.</p>
       </div>
 
       {query?.added ? <p className="admin-inline-message success">참가자가 추가되었습니다.</p> : null}
