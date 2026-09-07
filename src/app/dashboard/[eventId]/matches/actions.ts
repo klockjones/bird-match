@@ -378,3 +378,150 @@ export async function deleteAllMatches(formData: FormData) {
   revalidatePath(`/bracket/${formData.get("publicUuid") ?? ""}`);
   redirect(`/dashboard/${values.eventId}/matches?deletedAll=1&t=${Date.now()}`);
 }
+
+type BackupPlayerEntry = {
+  identity: string;
+  name: string | null;
+  englishId: string | null;
+};
+
+type BackupMatchEntry = {
+  matchNo: number;
+  roundName: string | null;
+  groupName: string | null;
+  courtNo: string | null;
+  status: "waiting" | "done";
+  scheduledAt: string | null;
+  sortOrder: number;
+  note: string | null;
+  team1Score: number;
+  team2Score: number;
+  winnerSide: "A" | "B" | null;
+  playersA: BackupPlayerEntry[];
+  playersB: BackupPlayerEntry[];
+};
+
+type EventPlayerIdentityRow = {
+  player_id: string;
+  players: { name: string | null; english_id: string | null } | Array<{ name: string | null; english_id: string | null }> | null;
+};
+
+export async function restoreMatchesFromBackup(formData: FormData) {
+  const { supabase } = await requireUser();
+  const eventId = String(formData.get("eventId") ?? "");
+  const publicUuid = String(formData.get("publicUuid") ?? "");
+  const returnPath = `/dashboard/${eventId}/matches/restore`;
+
+  const file = formData.get("file");
+  if (!(file instanceof File)) {
+    redirect(`${returnPath}?error=${encodeURIComponent("백업 파일을 선택해주세요.")}`);
+  }
+
+  let backupMatches: BackupMatchEntry[];
+  try {
+    const parsed = JSON.parse(await file.text());
+    if (!Array.isArray(parsed?.matches)) throw new Error("백업 파일 형식이 올바르지 않습니다 (matches 배열이 없습니다).");
+    backupMatches = parsed.matches;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "백업 파일을 읽지 못했습니다.";
+    redirect(`${returnPath}?error=${encodeURIComponent(message)}`);
+  }
+
+  if (backupMatches.length === 0) {
+    redirect(`${returnPath}?error=${encodeURIComponent("백업 파일에 복구할 경기가 없습니다.")}`);
+  }
+
+  const { data: eventPlayers, error: eventPlayersError } = await supabase
+    .from("event_players")
+    .select("player_id,players(name,english_id)")
+    .eq("event_id", eventId);
+
+  if (eventPlayersError) {
+    redirect(`${returnPath}?error=${encodeURIComponent(eventPlayersError.message)}`);
+  }
+
+  const participantMap = new Map<string, string>();
+  ((eventPlayers ?? []) as EventPlayerIdentityRow[]).forEach((row) => {
+    const player = Array.isArray(row.players) ? row.players[0] : row.players;
+    if (!player) return;
+    if (player.english_id) participantMap.set(player.english_id, row.player_id);
+    if (player.name) participantMap.set(player.name, row.player_id);
+  });
+
+  function resolvePlayerId(entry: BackupPlayerEntry) {
+    if (entry.englishId && participantMap.has(entry.englishId)) return participantMap.get(entry.englishId);
+    if (entry.name && participantMap.has(entry.name)) return participantMap.get(entry.name);
+    if (participantMap.has(entry.identity)) return participantMap.get(entry.identity);
+    return undefined;
+  }
+
+  const missingIdentities = new Set<string>();
+  backupMatches.forEach((match) => {
+    [...match.playersA, ...match.playersB].forEach((entry) => {
+      if (!resolvePlayerId(entry)) missingIdentities.add(entry.identity);
+    });
+  });
+
+  if (missingIdentities.size > 0) {
+    redirect(
+      `${returnPath}?error=${encodeURIComponent(`일정 참가자 명단에 없는 선수라 복구할 수 없습니다: ${[...missingIdentities].join(", ")}`)}`,
+    );
+  }
+
+  const { error: deleteError } = await supabase.from("matches").delete().eq("event_id", eventId);
+  if (deleteError) {
+    redirect(`${returnPath}?error=${encodeURIComponent(deleteError.message)}`);
+  }
+
+  let restoredCount = 0;
+
+  for (const match of backupMatches) {
+    const { data: createdMatch, error: matchError } = await supabase
+      .from("matches")
+      .insert({
+        event_id: eventId,
+        round_name: match.roundName,
+        group_name: match.groupName,
+        match_no: match.matchNo,
+        court_no: match.courtNo,
+        status: match.status,
+        scheduled_at: match.scheduledAt,
+        sort_order: match.sortOrder,
+        note: match.note,
+        team1_score: match.team1Score,
+        team2_score: match.team2Score,
+        winner_side: match.winnerSide,
+      })
+      .select("id")
+      .single();
+
+    if (matchError || !createdMatch) {
+      redirect(`${returnPath}?error=${encodeURIComponent(matchError?.message ?? `경기 ${match.matchNo} 복구 실패`)}`);
+    }
+
+    const slots = [
+      ...match.playersA.map((entry, index) => ({ playerId: resolvePlayerId(entry), side: "A" as const, position: index + 1 })),
+      ...match.playersB.map((entry, index) => ({ playerId: resolvePlayerId(entry), side: "B" as const, position: index + 1 })),
+    ];
+
+    const { error: slotError } = await supabase.from("match_players").insert(
+      slots.map((slot) => ({
+        match_id: createdMatch.id,
+        player_id: slot.playerId,
+        side: slot.side,
+        position: slot.position,
+      })),
+    );
+
+    if (slotError) {
+      redirect(`${returnPath}?error=${encodeURIComponent(slotError.message)}`);
+    }
+
+    restoredCount += 1;
+  }
+
+  revalidatePath(`/dashboard/${eventId}`);
+  revalidatePath(`/dashboard/${eventId}/matches`);
+  revalidatePath(`/bracket/${publicUuid}`);
+  redirect(`/dashboard/${eventId}/matches?restored=${restoredCount}&t=${Date.now()}`);
+}

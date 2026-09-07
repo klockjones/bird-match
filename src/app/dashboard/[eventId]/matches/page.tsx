@@ -17,7 +17,7 @@ import { getTeamAccentStyle } from "@/lib/utils/team-accent";
 
 type EventMatchesPageProps = {
   params: Promise<{ eventId: string }>;
-  searchParams?: Promise<{ created?: string; updated?: string; deleted?: string; deletedAll?: string; error?: string; t?: string; court?: string }>;
+  searchParams?: Promise<{ created?: string; updated?: string; deleted?: string; deletedAll?: string; restored?: string; error?: string; t?: string; court?: string }>;
 };
 
 type EventPlayerRow = {
@@ -88,7 +88,9 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
         ? "경기가 삭제되었습니다."
         : query?.deletedAll
           ? "등록된 경기를 모두 삭제했습니다."
-          : null;
+          : query?.restored
+            ? `백업 파일로 경기 ${query.restored}건을 복구했습니다.`
+            : null;
 
   return (
     <main className="admin-page-shell">
@@ -131,6 +133,8 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
           <Link href={`/dashboard/${eventId}/matches/new`} className="event-launcher-link">경기 생성</Link>
           <Link href={`/dashboard/${eventId}/matches/auto`} className="event-launcher-link">대진표 자동 생성</Link>
           <Link href={`/dashboard/${eventId}/matches/print`} className="event-launcher-link">경기표 인쇄 (A4)</Link>
+          <a href={`/dashboard/${eventId}/matches/backup`} className="event-launcher-link" download>경기 백업 다운로드</a>
+          <Link href={`/dashboard/${eventId}/matches/restore`} className="event-launcher-link">백업 파일로 복구</Link>
         </div>
 
         {matchList.length > 0 ? (
