@@ -138,19 +138,6 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
           <Link href={`/dashboard/${eventId}/matches/restore`} className="event-launcher-link">백업 파일로 복구</Link>
         </div>
 
-        {matchList.length > 0 ? (
-          <form action={deleteAllMatches} style={{ justifySelf: "start" }}>
-            <input type="hidden" name="eventId" value={eventId} />
-            <input type="hidden" name="publicUuid" value={detail.public_uuid} />
-            <HoldToConfirmButton
-              className="danger-button"
-              label={`꾹 눌러서 등록된 경기 ${matchList.length}건 일괄 삭제`}
-              holdingLabel="손을 떼면 취소돼요..."
-              pendingLabel="삭제 중..."
-            />
-          </form>
-        ) : null}
-
         {courtOptions.length > 1 ? (
           <div className="filter-pill-row">
             <a href="?" className={`filter-pill${selectedCourt ? "" : " active"}`}>전체</a>
@@ -215,6 +202,19 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
             })}
           </div>
         )}
+
+        {matchList.length > 0 ? (
+          <form action={deleteAllMatches} style={{ justifySelf: "start", marginTop: 24, paddingTop: 16, borderTop: "1px solid #f1f5f9" }}>
+            <input type="hidden" name="eventId" value={eventId} />
+            <input type="hidden" name="publicUuid" value={detail.public_uuid} />
+            <HoldToConfirmButton
+              className="danger-button"
+              label={`꾹 눌러서 등록된 경기 ${matchList.length}건 일괄 삭제`}
+              holdingLabel="손을 떼면 취소돼요..."
+              pendingLabel="삭제 중..."
+            />
+          </form>
+        ) : null}
       </section>
     </main>
   );
