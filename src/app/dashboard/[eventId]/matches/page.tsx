@@ -11,7 +11,7 @@ import type { EventDetailItem } from "@/lib/types/event";
 import type { MatchItem, MatchPlayerSlot } from "@/lib/types/match";
 import type { EventPlayerItem, PlayerItem } from "@/lib/types/player";
 import { formatDateTime } from "@/lib/utils/format-date";
-import { getDoublesTypeLabel, getMatchPlayerLabel } from "@/lib/utils/player-display";
+import { getDoublesTypeLabel, getMatchPlayerLabel, sortParticipantsByTeamAndName } from "@/lib/utils/player-display";
 import { getMatchStatusLabel } from "@/lib/utils/status-labels";
 import { getTeamAccentStyle } from "@/lib/utils/team-accent";
 
@@ -54,13 +54,15 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
   if (eventError || !event) notFound();
 
   const detail = event as EventDetailItem;
-  const participants = ((eventPlayers ?? []) as EventPlayerRow[])
-    .map((item) => {
-      const player = Array.isArray(item.players) ? item.players[0] : item.players;
-      if (!player) return null;
-      return { id: item.id, team: item.team, seed: item.seed, note: item.note, created_at: item.created_at, player } satisfies EventPlayerItem;
-    })
-    .filter((item): item is EventPlayerItem => Boolean(item));
+  const participants = sortParticipantsByTeamAndName(
+    ((eventPlayers ?? []) as EventPlayerRow[])
+      .map((item) => {
+        const player = Array.isArray(item.players) ? item.players[0] : item.players;
+        if (!player) return null;
+        return { id: item.id, team: item.team, seed: item.seed, note: item.note, created_at: item.created_at, player } satisfies EventPlayerItem;
+      })
+      .filter((item): item is EventPlayerItem => Boolean(item)),
+  );
 
   const matchList = ((matches ?? []) as MatchRow[]).map((match) => ({
     ...match,

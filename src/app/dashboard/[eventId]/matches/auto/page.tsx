@@ -5,6 +5,7 @@ import { OperatorTopBar } from "@/components/ui/operator-top-bar";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { EventDetailItem } from "@/lib/types/event";
 import type { EventPlayerItem, PlayerItem } from "@/lib/types/player";
+import { sortParticipantsByTeamAndName } from "@/lib/utils/player-display";
 
 type AutoMatchesPageProps = {
   params: Promise<{ eventId: string }>;
@@ -37,13 +38,15 @@ export default async function AutoMatchesPage({ params, searchParams }: AutoMatc
   if (eventError || !event) notFound();
 
   const detail = event as EventDetailItem;
-  const participants = ((eventPlayers ?? []) as EventPlayerRow[])
-    .map((item) => {
-      const player = Array.isArray(item.players) ? item.players[0] : item.players;
-      if (!player) return null;
-      return { id: item.id, team: item.team, seed: item.seed, note: item.note, created_at: item.created_at, player } satisfies EventPlayerItem;
-    })
-    .filter((item): item is EventPlayerItem => Boolean(item));
+  const participants = sortParticipantsByTeamAndName(
+    ((eventPlayers ?? []) as EventPlayerRow[])
+      .map((item) => {
+        const player = Array.isArray(item.players) ? item.players[0] : item.players;
+        if (!player) return null;
+        return { id: item.id, team: item.team, seed: item.seed, note: item.note, created_at: item.created_at, player } satisfies EventPlayerItem;
+      })
+      .filter((item): item is EventPlayerItem => Boolean(item)),
+  );
 
   const existingMatches = matches ?? [];
   const nextMatchNo = Math.max(0, ...existingMatches.map((match) => match.match_no)) + 1;
