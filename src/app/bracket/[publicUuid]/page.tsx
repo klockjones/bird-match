@@ -168,7 +168,7 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
         ) : null}
       </section>
 
-      <AutoRefreshControl intervalSeconds={15} />
+      <AutoRefreshControl intervalSeconds={10} />
 
       <section className="queue-section">
         {courtOptions.length > 1 ? (
