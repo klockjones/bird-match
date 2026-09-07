@@ -51,7 +51,7 @@ export async function createEventPlayer(formData: FormData) {
     eventId: formData.get("eventId"),
     name: formData.get("name"),
     gender: formData.get("gender"),
-    level: formData.get("level"),
+    level: formData.get("level") ?? undefined,
     affiliation: formData.get("affiliation"),
     englishId: formData.get("englishId"),
     nationalLevel: formData.get("nationalLevel"),
