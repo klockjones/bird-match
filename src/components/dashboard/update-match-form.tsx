@@ -4,6 +4,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import type { EventDetailItem } from "@/lib/types/event";
 import type { MatchItem } from "@/lib/types/match";
 import type { EventPlayerItem } from "@/lib/types/player";
+import { toKoreaLocalInputValue } from "@/lib/utils/format-date";
 import { getMatchPlayerLabel } from "@/lib/utils/player-display";
 
 type UpdateMatchFormProps = {
@@ -62,7 +63,7 @@ export function UpdateMatchForm({ event, match, participants }: UpdateMatchFormP
             <input
               name="scheduledAt"
               type="datetime-local"
-              defaultValue={match.scheduled_at ? match.scheduled_at.slice(0, 16) : ""}
+              defaultValue={toKoreaLocalInputValue(match.scheduled_at)}
             />
           </label>
         </div>

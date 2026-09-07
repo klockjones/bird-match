@@ -45,3 +45,22 @@ export function formatDateOnly(value: string | null) {
 export function toKoreaTimestamp(naiveLocalDateTime: string): string {
   return `${naiveLocalDateTime}:00+09:00`;
 }
+
+/**
+ * Inverse of toKoreaTimestamp — converts a stored UTC instant back into the
+ * naive "YYYY-MM-DDTHH:MM" Korea wall-clock string a <input type="datetime-local">
+ * needs as its defaultValue. Without this, the input shows the raw UTC digits
+ * as if they were already Korea time, and resubmitting the form (even
+ * untouched) re-applies +09:00 on top of that, shifting scheduled_at by
+ * another 9 hours every time the match is saved.
+ */
+export function toKoreaLocalInputValue(value: string | null): string {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const kst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${kst.getUTCFullYear()}-${pad(kst.getUTCMonth() + 1)}-${pad(kst.getUTCDate())}T${pad(kst.getUTCHours())}:${pad(kst.getUTCMinutes())}`;
+}
