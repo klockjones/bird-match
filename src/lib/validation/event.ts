@@ -31,5 +31,10 @@ export const updateEventSchema = applyTeamLabelValidation(eventSchemaBase.extend
   status: z.enum(["draft", "published", "closed"]),
 }));
 
+export const deleteEventSchema = z.object({
+  eventId: z.string().uuid("올바른 일정 식별자가 아닙니다."),
+});
+
 export type CreateEventInput = z.infer<typeof createEventSchema>;
 export type UpdateEventInput = z.infer<typeof updateEventSchema>;
+export type DeleteEventInput = z.infer<typeof deleteEventSchema>;

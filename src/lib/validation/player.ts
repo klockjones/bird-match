@@ -28,6 +28,15 @@ export const removeEventPlayerSchema = z.object({
   participantId: z.string().uuid("올바른 참가자 식별자가 아닙니다."),
 });
 
+export const deletePlayerSchema = z.object({
+  playerId: z.string().uuid("올바른 선수 식별자가 아닙니다."),
+});
+
+export const setPlayerActiveSchema = z.object({
+  playerId: z.string().uuid("올바른 선수 식별자가 아닙니다."),
+  isActive: z.enum(["true", "false"]),
+});
+
 export const createEventPlayerSchema = z
   .object({
     eventId: z.string().uuid("올바른 일정 식별자가 아닙니다."),
@@ -55,3 +64,5 @@ export const createEventPlayerSchema = z
 export type CreatePlayerInput = z.infer<typeof createPlayerSchema>;
 export type RemoveEventPlayerInput = z.infer<typeof removeEventPlayerSchema>;
 export type CreateEventPlayerInput = z.infer<typeof createEventPlayerSchema>;
+export type DeletePlayerInput = z.infer<typeof deletePlayerSchema>;
+export type SetPlayerActiveInput = z.infer<typeof setPlayerActiveSchema>;

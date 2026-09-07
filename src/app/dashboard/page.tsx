@@ -10,6 +10,7 @@ import { getTeamAccentStyle } from "@/lib/utils/team-accent";
 type DashboardPageProps = {
   searchParams?: Promise<{
     created?: string;
+    deletedEvent?: string;
     error?: string;
     home?: string;
   }>;
@@ -33,7 +34,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   const eventList = (events ?? []) as EventListItem[];
 
-  if (params?.home !== "1" && !params?.created && !params?.error && eventList.length > 0) {
+  if (params?.home !== "1" && !params?.created && !params?.deletedEvent && !params?.error && eventList.length > 0) {
     redirect(`/dashboard/${eventList[0].id}`);
   }
 
@@ -66,6 +67,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       </div>
 
       {params?.created ? <p className="admin-inline-message success">일정이 생성되었습니다.</p> : null}
+      {params?.deletedEvent ? <p className="admin-inline-message success">일정이 삭제되었습니다.</p> : null}
       {params?.error ? <p className="admin-inline-message error">{params.error}</p> : null}
       {error ? <p className="admin-inline-message error">일정 목록을 불러오지 못했습니다: {error.message}</p> : null}
 

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createEventSchema, updateEventSchema } from "@/lib/validation/event";
+import { createEventSchema, deleteEventSchema, updateEventSchema } from "@/lib/validation/event";
 
 export async function createEvent(formData: FormData) {
   const supabase = await createSupabaseServerClient();
@@ -104,4 +104,34 @@ export async function updateEvent(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath(`/dashboard/${values.eventId}`);
   redirect(`/dashboard/${values.eventId}?updated=1`);
+}
+
+export async function deleteEvent(formData: FormData) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const parsed = deleteEventSchema.safeParse({
+    eventId: formData.get("eventId"),
+  });
+
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message ?? "일정 삭제 입력값이 올바르지 않습니다.";
+    redirect(`/dashboard/${formData.get("eventId")}/settings?error=${encodeURIComponent(message)}`);
+  }
+
+  const values = parsed.data;
+  const { error } = await supabase.from("events").delete().eq("id", values.eventId);
+
+  if (error) {
+    redirect(`/dashboard/${values.eventId}/settings?error=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath("/dashboard");
+  redirect("/dashboard?deletedEvent=1");
 }
