@@ -5,6 +5,14 @@ import { OperatorTopBar } from "@/components/ui/operator-top-bar";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { EventDetailItem } from "@/lib/types/event";
 
+function LauncherAction({ href, label, disabled }: { href: string; label: string; disabled: boolean }) {
+  if (disabled) {
+    return <span className="event-launcher-link" aria-disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>{label} (종료된 일정)</span>;
+  }
+
+  return <Link className="event-launcher-link" href={href}>{label}</Link>;
+}
+
 type EventDetailPageProps = {
   params: Promise<{
     eventId: string;
@@ -47,6 +55,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
   const matchTotal = (matchRows ?? []).length;
   const matchDone = (matchRows ?? []).filter((match) => match.status === "done").length;
   const isAdmin = currentUserProfile?.role === "admin";
+  const isClosed = detail.status === "closed";
 
   return (
     <main className="admin-page-shell">
@@ -59,6 +68,11 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
 
       {query?.updated ? <p className="admin-inline-message success">일정 설정이 저장되었습니다.</p> : null}
       {query?.error ? <p className="admin-inline-message error">{query.error}</p> : null}
+      {isClosed ? (
+        <p className="admin-inline-message">
+          종료된 일정입니다. 참가자 등록·경기 생성·경기 관리 화면은 숨겨져 있습니다 — 지난 경기에서 결과를 확인하거나, 일정 관리에서 다시 열 수 있습니다.
+        </p>
+      ) : null}
 
       <section className="event-hub-grid">
         <section className="event-launcher-groups">
@@ -99,13 +113,13 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
                 <div className="event-launcher-badge-row" />
                 <h3 className="event-launcher-title">참가자 명단 업로드</h3>
                 <p className="event-launcher-copy">CSV 파일로 참가자 명단을 한 번에 일괄 등록합니다.</p>
-                <Link className="event-launcher-link" href={`/dashboard/${detail.id}/imports/players`}>참가자 명단 업로드로 이동</Link>
+                <LauncherAction href={`/dashboard/${detail.id}/imports/players`} label="참가자 명단 업로드로 이동" disabled={isClosed} />
               </article>
               <article className="event-launcher-card">
                 <div className="event-launcher-badge-row" />
                 <h3 className="event-launcher-title">참가 명단 추가 (수동입력)</h3>
                 <p className="event-launcher-copy">선수 마스터에 없는 사람을 바로 등록하면서 이 일정에 추가합니다.</p>
-                <Link className="event-launcher-link" href={`/dashboard/${detail.id}/players/new`}>참가 명단 추가로 이동</Link>
+                <LauncherAction href={`/dashboard/${detail.id}/players/new`} label="참가 명단 추가로 이동" disabled={isClosed} />
               </article>
               <article className="event-launcher-card">
                 <div className="event-launcher-badge-row">
@@ -113,7 +127,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
                 </div>
                 <h3 className="event-launcher-title">참가 명단 관리</h3>
                 <p className="event-launcher-copy">선수 등록, 일정 참가 연결, 팀 배정 상태를 확인합니다.</p>
-                <Link className="event-launcher-link" href={`/dashboard/${detail.id}/players`}>참가 명단 관리로 이동</Link>
+                <LauncherAction href={`/dashboard/${detail.id}/players`} label="참가 명단 관리로 이동" disabled={isClosed} />
               </article>
             </div>
           </div>
@@ -131,19 +145,19 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
                 <div className="event-launcher-badge-row" />
                 <h3 className="event-launcher-title">대진표 자동 생성</h3>
                 <p className="event-launcher-copy">코트 개수와 경기 수를 입력하면 지역급수를 고려한 대진표를 랜덤 생성합니다.</p>
-                <Link className="event-launcher-link" href={`/dashboard/${detail.id}/matches/auto`}>대진표 자동 생성으로 이동</Link>
+                <LauncherAction href={`/dashboard/${detail.id}/matches/auto`} label="대진표 자동 생성으로 이동" disabled={isClosed} />
               </article>
               <article className="event-launcher-card">
                 <div className="event-launcher-badge-row" />
                 <h3 className="event-launcher-title">대진표 업로드</h3>
                 <p className="event-launcher-copy">이미 만들어 둔 CSV 대진표를 업로드해 경기를 한 번에 등록합니다.</p>
-                <Link className="event-launcher-link" href={`/dashboard/${detail.id}/imports/matches`}>대진표 업로드로 이동</Link>
+                <LauncherAction href={`/dashboard/${detail.id}/imports/matches`} label="대진표 업로드로 이동" disabled={isClosed} />
               </article>
               <article className="event-launcher-card">
                 <div className="event-launcher-badge-row" />
                 <h3 className="event-launcher-title">경기 생성 (수동입력)</h3>
                 <p className="event-launcher-copy">새 경기를 수기로 하나씩 등록할 때 바로 들어가는 전용 화면입니다.</p>
-                <Link className="event-launcher-link" href={`/dashboard/${detail.id}/matches/new`}>경기 생성으로 이동</Link>
+                <LauncherAction href={`/dashboard/${detail.id}/matches/new`} label="경기 생성으로 이동" disabled={isClosed} />
               </article>
             </div>
           </div>
@@ -163,7 +177,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
                 </div>
                 <h3 className="event-launcher-title">경기 관리</h3>
                 <p className="event-launcher-copy">코트, 순번, 점수, 상태를 빠르게 조정하는 운영 중심 화면입니다.</p>
-                <Link className="event-launcher-link" href={`/dashboard/${detail.id}/matches`}>경기 관리로 이동</Link>
+                <LauncherAction href={`/dashboard/${detail.id}/matches`} label="경기 관리로 이동" disabled={isClosed} />
               </article>
               <article className="event-launcher-card">
                 <div className="event-launcher-badge-row" />

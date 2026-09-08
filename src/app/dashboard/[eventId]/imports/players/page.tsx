@@ -68,6 +68,11 @@ export default async function ImportPlayersPage({ params, searchParams }: Import
   }
 
   const detail = event as EventDetailItem;
+
+  if (detail.status === "closed") {
+    redirect(`/dashboard/${eventId}/matches/past?closed=1`);
+  }
+
   const importLogs = (imports ?? []) as ImportLogItem[];
   const selectedErrorImport = query?.errorImport
     ? importLogs.find((item) => item.id === query.errorImport)

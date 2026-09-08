@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { deleteEvent } from "@/app/dashboard/actions";
+import { deleteEvent, setEventStatus } from "@/app/dashboard/actions";
 import { UpdateEventForm } from "@/components/dashboard/update-event-form";
 import { HoldToConfirmButton } from "@/components/ui/hold-to-confirm-button";
 import { OperatorTopBar } from "@/components/ui/operator-top-bar";
@@ -9,7 +9,7 @@ import type { EventDetailItem } from "@/lib/types/event";
 
 type EventSettingsPageProps = {
   params: Promise<{ eventId: string }>;
-  searchParams?: Promise<{ error?: string }>;
+  searchParams?: Promise<{ error?: string; statusUpdated?: string }>;
 };
 
 export default async function EventSettingsPage({ params, searchParams }: EventSettingsPageProps) {
@@ -55,6 +55,25 @@ export default async function EventSettingsPage({ params, searchParams }: EventS
       </div>
 
       {query?.error ? <p className="admin-inline-message error">{query.error}</p> : null}
+      {query?.statusUpdated ? <p className="admin-inline-message success">일정 상태가 변경되었습니다.</p> : null}
+
+      <section className="admin-stack" style={{ border: "1px solid #cbd5e1", borderRadius: 12, padding: 16, background: "#ffffff" }}>
+        <div>
+          <h2 style={{ marginBottom: 8 }}>{detail.status === "closed" ? "종료된 일정" : "일정 완료 처리"}</h2>
+          <p className="surface-copy" style={{ margin: 0 }}>
+            {detail.status === "closed"
+              ? "참가 명단 관리·경기 관리 등 운영 화면은 숨겨지고, 지난 경기에서만 결과를 확인할 수 있습니다. 참가자/경기 데이터는 그대로 남아있습니다."
+              : "완료 처리하면 참가 명단 관리·경기 관리 등 운영 화면이 숨겨지고, 지난 경기에서만 결과를 볼 수 있습니다. 데이터는 지워지지 않으며 언제든 다시 열 수 있습니다."}
+          </p>
+        </div>
+        <form action={setEventStatus} style={{ justifySelf: "start" }}>
+          <input type="hidden" name="eventId" value={eventId} />
+          <input type="hidden" name="status" value={detail.status === "closed" ? "published" : "closed"} />
+          <button type="submit" className={detail.status === "closed" ? "filter-pill" : "primary-button"}>
+            {detail.status === "closed" ? "다시 열기 (운영 중으로 전환)" : "일정 완료 처리"}
+          </button>
+        </form>
+      </section>
 
       <UpdateEventForm event={detail} />
 

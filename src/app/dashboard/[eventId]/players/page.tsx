@@ -86,6 +86,11 @@ export default async function EventPlayersPage({ params, searchParams }: EventPl
   }
 
   const detail = event as EventDetailItem;
+
+  if (detail.status === "closed") {
+    redirect(`/dashboard/${eventId}/matches/past?closed=1`);
+  }
+
   type PlayerMatchInfo = { matchNo: number; roundName: string | null; courtNo: string | null; doublesType: string };
   type MatchPlayerRow = { player_id: string; side: "A" | "B"; players: { gender: string | null } | { gender: string | null }[] | null };
   const matchCountByPlayer = new Map<string, number>();

@@ -35,6 +35,12 @@ export const deleteEventSchema = z.object({
   eventId: z.string().uuid("올바른 일정 식별자가 아닙니다."),
 });
 
+export const setEventStatusSchema = z.object({
+  eventId: z.string().uuid("올바른 일정 식별자가 아닙니다."),
+  status: z.enum(["draft", "published", "closed"]),
+});
+
 export type CreateEventInput = z.infer<typeof createEventSchema>;
 export type UpdateEventInput = z.infer<typeof updateEventSchema>;
 export type DeleteEventInput = z.infer<typeof deleteEventSchema>;
+export type SetEventStatusInput = z.infer<typeof setEventStatusSchema>;

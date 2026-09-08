@@ -10,6 +10,7 @@ import { getMatchPlayerLabel } from "@/lib/utils/player-display";
 
 type PastMatchesPageProps = {
   params: Promise<{ eventId: string }>;
+  searchParams?: Promise<{ closed?: string }>;
 };
 
 type MatchRow = Omit<MatchItem, "match_players"> & {
@@ -20,8 +21,9 @@ type MatchRow = Omit<MatchItem, "match_players"> & {
   }>;
 };
 
-export default async function PastMatchesPage({ params }: PastMatchesPageProps) {
+export default async function PastMatchesPage({ params, searchParams }: PastMatchesPageProps) {
   const { eventId } = await params;
+  const query = await searchParams;
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -69,6 +71,7 @@ export default async function PastMatchesPage({ params }: PastMatchesPageProps) 
         </p>
       </div>
 
+      {query?.closed ? <p className="admin-inline-message">종료된 일정이라 지난 경기로 연결했습니다. 참가자/경기를 다시 관리하려면 일정 관리에서 &quot;다시 열기&quot;를 눌러주세요.</p> : null}
       {matchesError ? <p className="admin-inline-message error">경기 목록을 불러오지 못했습니다: {matchesError.message}</p> : null}
 
       <section className="admin-summary-grid">

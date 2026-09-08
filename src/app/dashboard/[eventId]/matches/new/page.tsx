@@ -39,6 +39,11 @@ export default async function NewMatchPage({ params, searchParams }: NewMatchPag
   if (eventError || !event) notFound();
 
   const detail = event as EventDetailItem;
+
+  if (detail.status === "closed") {
+    redirect(`/dashboard/${eventId}/matches/past?closed=1`);
+  }
+
   const participants = sortParticipantsByTeamAndName(
     ((eventPlayers ?? []) as EventPlayerRow[])
       .map((item) => {

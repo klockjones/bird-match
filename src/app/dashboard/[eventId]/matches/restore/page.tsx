@@ -32,6 +32,11 @@ export default async function RestoreMatchesPage({ params, searchParams }: Resto
   if (eventError || !event) notFound();
 
   const detail = event as EventDetailItem;
+
+  if (detail.status === "closed") {
+    redirect(`/dashboard/${eventId}/matches/past?closed=1`);
+  }
+
   const matchCount = (matches ?? []).length;
 
   return (

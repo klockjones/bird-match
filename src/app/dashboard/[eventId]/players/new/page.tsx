@@ -51,6 +51,11 @@ export default async function NewEventPlayerPage({ params, searchParams }: NewEv
   }
 
   const detail = event as EventDetailItem;
+
+  if (detail.status === "closed") {
+    redirect(`/dashboard/${eventId}/matches/past?closed=1`);
+  }
+
   const participantList = ((eventPlayers ?? []) as EventPlayerRow[])
     .map((item) => {
       const player = Array.isArray(item.players) ? item.players[0] : item.players;

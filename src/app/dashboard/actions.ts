@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createEventSchema, deleteEventSchema, updateEventSchema } from "@/lib/validation/event";
+import { createEventSchema, deleteEventSchema, setEventStatusSchema, updateEventSchema } from "@/lib/validation/event";
 
 export async function createEvent(formData: FormData) {
   const supabase = await createSupabaseServerClient();
@@ -104,6 +104,38 @@ export async function updateEvent(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath(`/dashboard/${values.eventId}`);
   redirect(`/dashboard/${values.eventId}?updated=1`);
+}
+
+export async function setEventStatus(formData: FormData) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const parsed = setEventStatusSchema.safeParse({
+    eventId: formData.get("eventId"),
+    status: formData.get("status"),
+  });
+
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message ?? "일정 상태 변경 입력값이 올바르지 않습니다.";
+    redirect(`/dashboard/${formData.get("eventId")}/settings?error=${encodeURIComponent(message)}`);
+  }
+
+  const values = parsed.data;
+  const { error } = await supabase.from("events").update({ status: values.status }).eq("id", values.eventId);
+
+  if (error) {
+    redirect(`/dashboard/${values.eventId}/settings?error=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/${values.eventId}`);
+  redirect(`/dashboard/${values.eventId}/settings?statusUpdated=1`);
 }
 
 export async function deleteEvent(formData: FormData) {
