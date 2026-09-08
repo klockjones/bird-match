@@ -8,12 +8,6 @@ export function AuthForm() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
-  const [signupName, setSignupName] = useState("");
-  const [signupEmail, setSignupEmail] = useState("");
-  const [signupPassword, setSignupPassword] = useState("");
-  const [signupPasswordConfirm, setSignupPasswordConfirm] = useState("");
   const [loginMessage, setLoginMessage] = useState("");
   const [signupMessage, setSignupMessage] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
@@ -24,10 +18,11 @@ export function AuthForm() {
     setLoginLoading(true);
     setLoginMessage("");
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password: loginPassword,
-    });
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("loginEmail") ?? "");
+    const password = String(formData.get("loginPassword") ?? "");
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     setLoginMessage(error ? error.message : "로그인되었습니다. 대시보드로 이동합니다.");
 
@@ -44,18 +39,24 @@ export function AuthForm() {
     setSignupLoading(true);
     setSignupMessage("");
 
-    if (signupPassword !== signupPasswordConfirm) {
+    const formData = new FormData(event.currentTarget);
+    const name = String(formData.get("signupName") ?? "");
+    const email = String(formData.get("signupEmail") ?? "");
+    const password = String(formData.get("signupPassword") ?? "");
+    const passwordConfirm = String(formData.get("signupPasswordConfirm") ?? "");
+
+    if (password !== passwordConfirm) {
       setSignupMessage("비밀번호가 일치하지 않습니다. 다시 확인해주세요.");
       setSignupLoading(false);
       return;
     }
 
     const { error } = await supabase.auth.signUp({
-      email: signupEmail,
-      password: signupPassword,
+      email,
+      password,
       options: {
         data: {
-          name: signupName,
+          name,
         },
         emailRedirectTo: typeof window === "undefined" ? undefined : `${window.location.origin}/auth/callback`,
       },
@@ -79,8 +80,7 @@ export function AuthForm() {
             <input
               name="loginEmail"
               type="email"
-              value={loginEmail}
-              onChange={(event) => setLoginEmail(event.target.value)}
+              defaultValue=""
               required
               autoComplete="email"
               inputMode="email"
@@ -93,8 +93,7 @@ export function AuthForm() {
             <input
               name="loginPassword"
               type="password"
-              value={loginPassword}
-              onChange={(event) => setLoginPassword(event.target.value)}
+              defaultValue=""
               required
               minLength={8}
               autoComplete="current-password"
@@ -122,8 +121,7 @@ export function AuthForm() {
             <input
               name="signupName"
               type="text"
-              value={signupName}
-              onChange={(event) => setSignupName(event.target.value)}
+              defaultValue=""
               required
               autoComplete="name"
               placeholder="이름을 입력하세요"
@@ -135,8 +133,7 @@ export function AuthForm() {
             <input
               name="signupEmail"
               type="email"
-              value={signupEmail}
-              onChange={(event) => setSignupEmail(event.target.value)}
+              defaultValue=""
               required
               autoComplete="email"
               inputMode="email"
@@ -149,8 +146,7 @@ export function AuthForm() {
             <input
               name="signupPassword"
               type="password"
-              value={signupPassword}
-              onChange={(event) => setSignupPassword(event.target.value)}
+              defaultValue=""
               required
               minLength={8}
               autoComplete="new-password"
@@ -163,8 +159,7 @@ export function AuthForm() {
             <input
               name="signupPasswordConfirm"
               type="password"
-              value={signupPasswordConfirm}
-              onChange={(event) => setSignupPasswordConfirm(event.target.value)}
+              defaultValue=""
               required
               minLength={8}
               autoComplete="new-password"
