@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toKoreaTimestamp } from "@/lib/utils/format-date";
-import { createGeneratedMatchesSchema, createMatchSchema, deleteAllMatchesSchema, deleteMatchSchema, updateMatchSchema, updateMatchScoreSchema } from "@/lib/validation/match";
+import { createGeneratedMatchesSchema, createMatchSchema, deleteAllMatchesSchema, deleteMatchSchema, setMatchCancelledSchema, updateMatchSchema, updateMatchScoreSchema } from "@/lib/validation/match";
 
 async function requireUser() {
   const supabase = await createSupabaseServerClient();
@@ -352,6 +352,44 @@ export async function deleteMatch(formData: FormData) {
   revalidatePath(`/dashboard/${values.eventId}/matches`);
   revalidatePath(`/bracket/${formData.get("publicUuid") ?? ""}`);
   redirect(`/dashboard/${values.eventId}/matches?deleted=1&t=${Date.now()}`);
+}
+
+export async function setMatchCancelled(formData: FormData) {
+  const { supabase } = await requireUser();
+
+  const parsed = setMatchCancelledSchema.safeParse({
+    eventId: formData.get("eventId"),
+    matchId: formData.get("matchId"),
+    cancelled: formData.get("cancelled"),
+  });
+
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message ?? "경기 취소 처리 입력값이 올바르지 않습니다.";
+    redirect(`/dashboard/${formData.get("eventId")}/matches?error=${encodeURIComponent(message)}`);
+  }
+
+  const values = parsed.data;
+  const { error } = await supabase
+    .from("matches")
+    .update({
+      status: values.cancelled === "true" ? "cancelled" : "waiting",
+      team1_score: 0,
+      team2_score: 0,
+      winner_side: null,
+      started_at: null,
+      ended_at: null,
+    })
+    .eq("id", values.matchId)
+    .eq("event_id", values.eventId);
+
+  if (error) {
+    redirect(`/dashboard/${values.eventId}/matches?error=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath(`/dashboard/${values.eventId}`);
+  revalidatePath(`/dashboard/${values.eventId}/matches`);
+  revalidatePath(`/bracket/${formData.get("publicUuid") ?? ""}`);
+  redirect(`/dashboard/${values.eventId}/matches?statusUpdated=1&t=${Date.now()}`);
 }
 
 export async function deleteAllMatches(formData: FormData) {

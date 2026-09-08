@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createEventPlayerSchema, removeEventPlayerSchema } from "@/lib/validation/player";
+import { createEventPlayerSchema, editEventPlayerSchema, removeEventPlayerSchema } from "@/lib/validation/player";
 
 export async function removeEventPlayer(formData: FormData) {
   const supabase = await createSupabaseServerClient();
@@ -35,6 +35,51 @@ export async function removeEventPlayer(formData: FormData) {
   revalidatePath(`/dashboard/${values.eventId}`);
   revalidatePath(`/dashboard/${values.eventId}/players`);
   redirect(`/dashboard/${values.eventId}/players?removed=1`);
+}
+
+export async function editEventPlayer(formData: FormData) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const parsed = editEventPlayerSchema.safeParse({
+    eventId: formData.get("eventId"),
+    participantId: formData.get("participantId"),
+    team: formData.get("team") ?? "",
+    seed: formData.get("seed"),
+    note: formData.get("note"),
+  });
+
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message ?? "참가자 수정 입력값이 올바르지 않습니다.";
+    redirect(`/dashboard/${formData.get("eventId")}/players?error=${encodeURIComponent(message)}`);
+  }
+
+  const values = parsed.data;
+  const seed = values.seed ? Number(values.seed) : null;
+
+  if (values.seed && Number.isNaN(seed)) {
+    redirect(`/dashboard/${values.eventId}/players?error=${encodeURIComponent("시드는 숫자로 입력해주세요.")}`);
+  }
+
+  const { error } = await supabase
+    .from("event_players")
+    .update({ team: values.team || null, seed, note: values.note || null })
+    .eq("id", values.participantId)
+    .eq("event_id", values.eventId);
+
+  if (error) {
+    redirect(`/dashboard/${values.eventId}/players?error=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath(`/dashboard/${values.eventId}`);
+  revalidatePath(`/dashboard/${values.eventId}/players`);
+  redirect(`/dashboard/${values.eventId}/players?edited=1`);
 }
 
 export async function createEventPlayer(formData: FormData) {

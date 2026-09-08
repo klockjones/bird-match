@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { removeEventPlayer } from "@/app/dashboard/[eventId]/players/actions";
+import { editEventPlayer, removeEventPlayer } from "@/app/dashboard/[eventId]/players/actions";
 import { EmptyStateCard } from "@/components/ui/empty-state-card";
 import { HoldToConfirmButton } from "@/components/ui/hold-to-confirm-button";
 import { OperatorTopBar } from "@/components/ui/operator-top-bar";
@@ -23,6 +23,7 @@ type EventPlayersPageProps = {
   searchParams?: Promise<{
     added?: string;
     removed?: string;
+    edited?: string;
     error?: string;
     team?: string;
     sort?: string;
@@ -159,6 +160,7 @@ export default async function EventPlayersPage({ params, searchParams }: EventPl
 
       {query?.added ? <p className="admin-inline-message success">참가자가 추가되었습니다.</p> : null}
       {query?.removed ? <p className="admin-inline-message success">참가자가 삭제되었습니다.</p> : null}
+      {query?.edited ? <p className="admin-inline-message success">참가자 정보가 수정되었습니다.</p> : null}
       {query?.error ? <p className="admin-inline-message error">{query.error}</p> : null}
       {eventPlayersError ? <p className="admin-inline-message error">참가 명단을 불러오지 못했습니다: {eventPlayersError.message}</p> : null}
 
@@ -230,6 +232,30 @@ export default async function EventPlayersPage({ params, searchParams }: EventPl
                     </div>
                   ) : null}
                   {participant.note ? <div className="participant-note-card"><p className="player-secondary-text" style={{ margin: 0 }}>{participant.note}</p></div> : null}
+
+                  <details className="admin-edit-panel">
+                    <summary>팀·시드·메모 수정</summary>
+                    <form action={editEventPlayer} style={{ display: "grid", gap: 10, marginTop: 10 }}>
+                      <input type="hidden" name="eventId" value={eventId} />
+                      <input type="hidden" name="participantId" value={participant.id} />
+                      <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))" }}>
+                        <label style={{ display: "grid", gap: 6 }}>
+                          <span>팀</span>
+                          <input name="team" defaultValue={participant.team ?? ""} placeholder="예: 어피치" />
+                        </label>
+                        <label style={{ display: "grid", gap: 6 }}>
+                          <span>시드</span>
+                          <input name="seed" type="number" min="1" defaultValue={participant.seed ?? ""} />
+                        </label>
+                      </div>
+                      <label style={{ display: "grid", gap: 6 }}>
+                        <span>메모</span>
+                        <input name="note" defaultValue={participant.note ?? ""} placeholder="예: 당일 접수, 대기조" />
+                      </label>
+                      <button type="submit" className="primary-button" style={{ justifySelf: "start" }}>저장</button>
+                    </form>
+                  </details>
+
                   <form action={removeEventPlayer} style={{ justifySelf: "end" }}>
                     <input type="hidden" name="eventId" value={eventId} />
                     <input type="hidden" name="participantId" value={participant.id} />

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { deleteAllMatches } from "@/app/dashboard/[eventId]/matches/actions";
+import { deleteAllMatches, setMatchCancelled } from "@/app/dashboard/[eventId]/matches/actions";
 import { QuickScoreForm } from "@/components/dashboard/quick-score-form";
 import { UpdateMatchForm } from "@/components/dashboard/update-match-form";
 import { HoldToConfirmButton } from "@/components/ui/hold-to-confirm-button";
@@ -17,7 +17,7 @@ import { getTeamAccentStyle } from "@/lib/utils/team-accent";
 
 type EventMatchesPageProps = {
   params: Promise<{ eventId: string }>;
-  searchParams?: Promise<{ created?: string; updated?: string; deleted?: string; deletedAll?: string; restored?: string; error?: string; t?: string; court?: string }>;
+  searchParams?: Promise<{ created?: string; updated?: string; deleted?: string; deletedAll?: string; restored?: string; statusUpdated?: string; error?: string; t?: string; court?: string }>;
 };
 
 type EventPlayerRow = {
@@ -80,8 +80,9 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
       .filter((slot): slot is MatchPlayerSlot => Boolean(slot))
       .sort((left, right) => left.side.localeCompare(right.side) || left.position - right.position),
   })) as MatchItem[];
-  const waitingCount = matchList.filter((match) => match.status !== "done").length;
   const doneCount = matchList.filter((match) => match.status === "done").length;
+  const cancelledCount = matchList.filter((match) => match.status === "cancelled").length;
+  const waitingCount = matchList.length - doneCount - cancelledCount;
   const courtOptions = [...new Set(matchList.map((match) => match.court_no).filter((court): court is string => Boolean(court)))];
   const selectedCourt = query?.court && courtOptions.includes(query.court) ? query.court : null;
   const visibleMatches = selectedCourt ? matchList.filter((match) => match.court_no === selectedCourt) : matchList;
@@ -95,7 +96,9 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
           ? "등록된 경기를 모두 삭제했습니다."
           : query?.restored
             ? `백업 파일로 경기 ${query.restored}건을 복구했습니다.`
-            : null;
+            : query?.statusUpdated
+              ? "경기 상태가 변경되었습니다."
+              : null;
 
   return (
     <main className="admin-page-shell">
@@ -126,6 +129,10 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
         <article className="admin-summary-card">
           <span className="admin-summary-label">완료</span>
           <span className="admin-summary-value">{doneCount}</span>
+        </article>
+        <article className="admin-summary-card">
+          <span className="admin-summary-label">취소</span>
+          <span className="admin-summary-value">{cancelledCount}</span>
         </article>
       </section>
 
@@ -173,7 +180,7 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
                       </p>
                     </div>
                     <div className="admin-meta-stack">
-                      <span className={`status-chip ${match.status === "done" ? "done" : "waiting"}`}>{getMatchStatusLabel(match.status)}</span>
+                      <span className={`status-chip ${match.status}`}>{getMatchStatusLabel(match.status)}</span>
                       <div className="muted-text">예정: {formatDateTime(match.scheduled_at)}</div>
                     </div>
                   </div>
@@ -200,6 +207,29 @@ export default async function EventMatchesPage({ params, searchParams }: EventMa
                   </div>
 
                   <QuickScoreForm event={detail} match={match} />
+
+                  {match.status === "cancelled" ? (
+                    <form action={setMatchCancelled}>
+                      <input type="hidden" name="eventId" value={eventId} />
+                      <input type="hidden" name="matchId" value={match.id} />
+                      <input type="hidden" name="publicUuid" value={detail.public_uuid} />
+                      <input type="hidden" name="cancelled" value="false" />
+                      <button type="submit" className="filter-pill">대기 상태로 되돌리기</button>
+                    </form>
+                  ) : (
+                    <form action={setMatchCancelled}>
+                      <input type="hidden" name="eventId" value={eventId} />
+                      <input type="hidden" name="matchId" value={match.id} />
+                      <input type="hidden" name="publicUuid" value={detail.public_uuid} />
+                      <input type="hidden" name="cancelled" value="true" />
+                      <HoldToConfirmButton
+                        className="danger-button"
+                        label="꾹 눌러서 부전승/취소 처리"
+                        holdingLabel="손을 떼면 취소돼요..."
+                        pendingLabel="처리 중..."
+                      />
+                    </form>
+                  )}
 
                   <UpdateMatchForm event={detail} match={match} participants={participants} />
                 </article>

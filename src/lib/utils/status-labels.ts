@@ -2,7 +2,9 @@ import type { EventStatus } from "@/lib/types/event";
 import type { MatchStatus } from "@/lib/types/match";
 
 export function getMatchStatusLabel(status: MatchStatus) {
-  return status === "done" ? "완료" : "대기";
+  if (status === "done") return "완료";
+  if (status === "cancelled") return "취소";
+  return "대기";
 }
 
 export function getEventStatusLabel(status: EventStatus) {

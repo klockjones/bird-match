@@ -189,6 +189,18 @@ a:focus-visible {
   box-shadow: var(--shadow-soft-card);
 }
 
+.matchboard-closed-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 10px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+}
+
 .matchboard-hero-actions {
   display: flex;
   justify-content: flex-end;
@@ -415,6 +427,7 @@ a:focus-visible {
 
 .status-chip.waiting { background: #e2e8f0; color: #334155; }
 .status-chip.done { background: #ede9fe; color: #6d28d9; }
+.status-chip.cancelled { background: #fef3c7; color: #92400e; }
 .status-chip.next { background: #dbeafe; color: #1d4ed8; position: relative; padding-left: 28px; }
 .status-chip.draft { background: #e2e8f0; color: #334155; }
 .status-chip.published { background: #dcfce7; color: #15803d; }

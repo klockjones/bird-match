@@ -45,7 +45,7 @@ export const updateMatchSchema = z
     groupName: z.string().trim().max(50).optional(),
     matchNo: z.coerce.number().int().positive("경기 번호는 1 이상이어야 합니다."),
     courtNo: z.string().trim().max(30).optional(),
-    status: z.enum(["waiting", "done"]),
+    status: z.enum(["waiting", "done", "cancelled"]),
     scheduledAt: z.string().trim().optional(),
     sortOrder: z.coerce.number().int().min(0, "정렬 순서는 0 이상이어야 합니다."),
     team1Score: z.coerce.number().int().min(0, "점수는 0 이상이어야 합니다."),
@@ -107,6 +107,12 @@ export const deleteMatchSchema = z.object({
   matchId: z.string().uuid("올바른 경기 식별자가 아닙니다."),
 });
 
+export const setMatchCancelledSchema = z.object({
+  eventId: z.string().uuid("올바른 일정 식별자가 아닙니다."),
+  matchId: z.string().uuid("올바른 경기 식별자가 아닙니다."),
+  cancelled: z.enum(["true", "false"]),
+});
+
 export const deleteAllMatchesSchema = z.object({
   eventId: z.string().uuid("올바른 일정 식별자가 아닙니다."),
 });
@@ -141,5 +147,6 @@ export type CreateMatchInput = z.infer<typeof createMatchSchema>;
 export type UpdateMatchScoreInput = z.infer<typeof updateMatchScoreSchema>;
 export type UpdateMatchInput = z.infer<typeof updateMatchSchema>;
 export type DeleteMatchInput = z.infer<typeof deleteMatchSchema>;
+export type SetMatchCancelledInput = z.infer<typeof setMatchCancelledSchema>;
 export type DeleteAllMatchesInput = z.infer<typeof deleteAllMatchesSchema>;
 export type GeneratedMatchInput = z.infer<typeof generatedMatchSchema>;

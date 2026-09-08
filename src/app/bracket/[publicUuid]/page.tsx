@@ -101,7 +101,8 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
   const selectedStatus = query?.status === "waiting" || query?.status === "done" ? query.status : null;
   const courtFilteredMatches = matchList.filter((match) => !selectedCourt || match.court_no === selectedCourt);
   const finishedCount = courtFilteredMatches.filter((match) => match.status === "done").length;
-  const waitingCount = courtFilteredMatches.length - finishedCount;
+  const cancelledCount = courtFilteredMatches.filter((match) => match.status === "cancelled").length;
+  const waitingCount = courtFilteredMatches.length - finishedCount - cancelledCount;
   const visibleMatches = courtFilteredMatches.filter((match) => !selectedStatus || match.status === selectedStatus);
 
   const statusQuery = (value: string) => {
@@ -150,6 +151,7 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
         <p className="matchboard-subtitle">
           {detail.location ?? "장소 미정"} · {matchList.length}경기 · {roundCount}라운드
         </p>
+        {detail.status === "closed" ? <span className="matchboard-closed-badge">경기 종료</span> : null}
         <div className="matchboard-hero-actions">
           <Link href="/login" className="matchboard-operator-link">운영자 모드</Link>
         </div>
@@ -168,7 +170,7 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
         ) : null}
       </section>
 
-      <AutoRefreshControl intervalSeconds={10} />
+      {detail.status === "closed" ? null : <AutoRefreshControl intervalSeconds={10} />}
 
       <section className="queue-section">
         {courtOptions.length > 1 ? (
@@ -210,7 +212,7 @@ export default async function BracketPage({ params, searchParams }: BracketPageP
                     <span className="match-tag type">{matchType}</span>
                     <span className="match-tag">{match.court_no ?? "코트 미정"}</span>
                     <span className="match-row-time">{sharedDate ? formatTimeOnly(match.scheduled_at) : formatDateTime(match.scheduled_at)}</span>
-                    <span className={`status-chip ${match.status === "done" ? "done" : "waiting"}`}>
+                    <span className={`status-chip ${match.status}`}>
                       {getMatchStatusLabel(match.status)}
                     </span>
                   </div>

@@ -7,6 +7,7 @@ import type { MatchItem, MatchPlayerSlot } from "@/lib/types/match";
 import type { PlayerItem } from "@/lib/types/player";
 import { formatDateTime } from "@/lib/utils/format-date";
 import { getMatchPlayerLabel } from "@/lib/utils/player-display";
+import { getMatchStatusLabel } from "@/lib/utils/status-labels";
 
 type PastMatchesPageProps = {
   params: Promise<{ eventId: string }>;
@@ -35,7 +36,7 @@ export default async function PastMatchesPage({ params, searchParams }: PastMatc
       .from("matches")
       .select("id,event_id,round_name,group_name,match_no,court_no,status,team1_score,team2_score,winner_side,scheduled_at,sort_order,note,created_at,updated_at,match_players(side,position,players(id,name,gender,level,phone,memo,affiliation,english_id,national_level,regional_level,is_active,created_at))")
       .eq("event_id", eventId)
-      .eq("status", "done")
+      .in("status", ["done", "cancelled"])
       .order("sort_order", { ascending: true })
       .order("match_no", { ascending: true }),
     supabase.from("matches").select("id").eq("event_id", eventId),
@@ -56,6 +57,8 @@ export default async function PastMatchesPage({ params, searchParams }: PastMatc
       .filter((slot): slot is MatchPlayerSlot => Boolean(slot))
       .sort((left, right) => left.side.localeCompare(right.side) || left.position - right.position),
   })) as MatchItem[];
+  const doneCount = matchList.filter((match) => match.status === "done").length;
+  const cancelledCount = matchList.filter((match) => match.status === "cancelled").length;
 
   return (
     <main className="admin-page-shell">
@@ -81,7 +84,11 @@ export default async function PastMatchesPage({ params, searchParams }: PastMatc
         </article>
         <article className="admin-summary-card">
           <span className="admin-summary-label">완료</span>
-          <span className="admin-summary-value">{matchList.length}</span>
+          <span className="admin-summary-value">{doneCount}</span>
+        </article>
+        <article className="admin-summary-card">
+          <span className="admin-summary-label">취소</span>
+          <span className="admin-summary-value">{cancelledCount}</span>
         </article>
         <article className="admin-summary-card">
           <span className="admin-summary-label">남은 경기</span>
@@ -105,8 +112,8 @@ export default async function PastMatchesPage({ params, searchParams }: PastMatc
                     <p className="admin-match-subtitle">{match.court_no ?? "코트 미정"} · {formatDateTime(match.scheduled_at)}</p>
                   </div>
                   <div className="admin-meta-stack">
-                    <span className="status-chip done">완료</span>
-                    <div className="muted-text">{match.team1_score} : {match.team2_score}</div>
+                    <span className={`status-chip ${match.status}`}>{getMatchStatusLabel(match.status)}</span>
+                    {match.status === "done" ? <div className="muted-text">{match.team1_score} : {match.team2_score}</div> : null}
                   </div>
                 </div>
 
