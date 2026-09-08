@@ -27,7 +27,7 @@ export default async function PastMatchesPage({ params }: PastMatchesPageProps) 
 
   if (!user) redirect("/login");
 
-  const [{ data: event, error: eventError }, { data: matches, error: matchesError }] = await Promise.all([
+  const [{ data: event, error: eventError }, { data: matches, error: matchesError }, { data: allMatches }] = await Promise.all([
     supabase.from("events").select("id,title,public_uuid,event_type,status,event_date,location,is_public,scoring_rule,team_label_1,team_label_2,created_at,updated_at").eq("id", eventId).single(),
     supabase
       .from("matches")
@@ -36,11 +36,13 @@ export default async function PastMatchesPage({ params }: PastMatchesPageProps) 
       .eq("status", "done")
       .order("sort_order", { ascending: true })
       .order("match_no", { ascending: true }),
+    supabase.from("matches").select("id").eq("event_id", eventId),
   ]);
 
   if (eventError || !event) notFound();
 
   const detail = event as EventDetailItem;
+  const totalMatchCount = (allMatches ?? []).length;
   const matchList = ((matches ?? []) as MatchRow[]).map((match) => ({
     ...match,
     match_players: match.match_players
@@ -62,10 +64,27 @@ export default async function PastMatchesPage({ params }: PastMatchesPageProps) 
         </div>
         <OperatorTopBar name={user.user_metadata?.name as string | undefined} />
         <h1 style={{ margin: 0 }}>지난 경기</h1>
-        <p className="surface-copy" style={{ margin: 0 }}>{detail.title} 일정에서 완료된 경기만 간단히 모아봅니다.</p>
+        <p className="surface-copy" style={{ margin: 0 }}>
+          {detail.title} · {detail.event_date ?? "날짜 미정"} · {detail.location ?? "장소 미정"}
+        </p>
       </div>
 
       {matchesError ? <p className="admin-inline-message error">경기 목록을 불러오지 못했습니다: {matchesError.message}</p> : null}
+
+      <section className="admin-summary-grid">
+        <article className="admin-summary-card">
+          <span className="admin-summary-label">전체 경기</span>
+          <span className="admin-summary-value">{totalMatchCount}</span>
+        </article>
+        <article className="admin-summary-card">
+          <span className="admin-summary-label">완료</span>
+          <span className="admin-summary-value">{matchList.length}</span>
+        </article>
+        <article className="admin-summary-card">
+          <span className="admin-summary-label">남은 경기</span>
+          <span className="admin-summary-value">{totalMatchCount - matchList.length}</span>
+        </article>
+      </section>
 
       {matchList.length === 0 ? (
         <div className="empty-card">아직 지난 경기가 없습니다.</div>
