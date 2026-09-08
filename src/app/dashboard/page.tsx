@@ -7,14 +7,26 @@ import { formatDateTime } from "@/lib/utils/format-date";
 import { getEventStatusLabel } from "@/lib/utils/status-labels";
 import { getTeamAccentStyle } from "@/lib/utils/team-accent";
 
+const PAST_EVENTS_PAGE_SIZE = 10;
+
 type DashboardPageProps = {
   searchParams?: Promise<{
     created?: string;
     deletedEvent?: string;
     error?: string;
     home?: string;
+    q?: string;
+    pastLimit?: string;
   }>;
 };
+
+function buildDashboardHref(overrides: { q?: string; pastLimit?: number }) {
+  const params = new URLSearchParams();
+  params.set("home", "1");
+  if (overrides.q) params.set("q", overrides.q);
+  if (overrides.pastLimit && overrides.pastLimit !== PAST_EVENTS_PAGE_SIZE) params.set("pastLimit", String(overrides.pastLimit));
+  return `?${params.toString()}`;
+}
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const supabase = await createSupabaseServerClient();
@@ -27,10 +39,30 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   }
 
   const params = await searchParams;
-  const { data: events, error } = await supabase
+  const pastSearchText = (params?.q ?? "").trim();
+  const pastLimit = Math.min(Math.max(Number(params?.pastLimit) || PAST_EVENTS_PAGE_SIZE, PAST_EVENTS_PAGE_SIZE), 200);
+
+  // Past events can accumulate indefinitely as the club keeps running events —
+  // fetch only the current page (+1 to detect "more") instead of every closed
+  // event ever created, and only pull match counts for that page.
+  let pastEventsQuery = supabase
     .from("events")
     .select("id,title,public_uuid,event_type,status,event_date,location,is_public,scoring_rule,team_label_1,team_label_2,created_at")
-    .order("created_at", { ascending: false });
+    .eq("status", "closed")
+    .order("created_at", { ascending: false })
+    .limit(pastLimit + 1);
+
+  if (pastSearchText) {
+    pastEventsQuery = pastEventsQuery.ilike("title", `%${pastSearchText}%`);
+  }
+
+  const [{ data: events, error }, { data: pastEventsRaw, error: pastEventsError }] = await Promise.all([
+    supabase
+      .from("events")
+      .select("id,title,public_uuid,event_type,status,event_date,location,is_public,scoring_rule,team_label_1,team_label_2,created_at")
+      .order("created_at", { ascending: false }),
+    pastEventsQuery,
+  ]);
 
   const eventList = (events ?? []) as EventListItem[];
 
@@ -43,7 +75,10 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const closedCount = eventList.filter((event) => event.status === "closed").length;
 
   const currentEvents = eventList.filter((event) => event.status !== "closed");
-  const pastEvents = eventList.filter((event) => event.status === "closed");
+
+  const pastEventsAll = (pastEventsRaw ?? []) as EventListItem[];
+  const hasMorePastEvents = pastEventsAll.length > pastLimit;
+  const pastEvents = pastEventsAll.slice(0, pastLimit);
 
   const pastEventIds = pastEvents.map((event) => event.id);
   const { data: pastMatches } = pastEventIds.length > 0
@@ -145,28 +180,45 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           )}
         </section>
 
-        {pastEvents.length > 0 ? (
+        {closedCount > 0 ? (
           <section className="dashboard-section">
             <div>
               <h2 style={{ marginBottom: 8 }}>지난 일정</h2>
               <p className="surface-copy" style={{ margin: 0 }}>종료된 일정은 간단한 요약만 남습니다.</p>
             </div>
 
-            <div className="dashboard-event-list-compact">
-              {pastEvents.map((event) => {
-                const counts = pastMatchCounts.get(event.id) ?? { total: 0, done: 0 };
-                return (
-                  <Link key={event.id} href={`/dashboard/${event.id}`} className="dashboard-event-card-compact">
-                    <div>
-                      <span className="team-dot" style={getTeamAccentStyle(event.title)} aria-hidden />
-                      <span className="dashboard-event-title-compact">{event.title}</span>
-                      <span className="muted-text"> · {event.event_date ?? "날짜 미정"} · {event.location ?? "장소 미정"}</span>
-                    </div>
-                    <span className="muted-text">경기 {counts.total} · 완료 {counts.done}</span>
-                  </Link>
-                );
-              })}
-            </div>
+            <form method="GET" style={{ display: "flex", gap: 8 }}>
+              <input type="hidden" name="home" value="1" />
+              <input type="search" name="q" defaultValue={pastSearchText} placeholder="지난 일정 제목으로 검색" aria-label="지난 일정 검색" />
+            </form>
+
+            {pastEventsError ? <p className="admin-inline-message error">지난 일정을 불러오지 못했습니다: {pastEventsError.message}</p> : null}
+
+            {pastEvents.length === 0 ? (
+              <div className="empty-card">검색 결과가 없습니다.</div>
+            ) : (
+              <div className="dashboard-event-list-compact">
+                {pastEvents.map((event) => {
+                  const counts = pastMatchCounts.get(event.id) ?? { total: 0, done: 0 };
+                  return (
+                    <Link key={event.id} href={`/dashboard/${event.id}`} className="dashboard-event-card-compact">
+                      <div>
+                        <span className="team-dot" style={getTeamAccentStyle(event.title)} aria-hidden />
+                        <span className="dashboard-event-title-compact">{event.title}</span>
+                        <span className="muted-text"> · {event.event_date ?? "날짜 미정"} · {event.location ?? "장소 미정"}</span>
+                      </div>
+                      <span className="muted-text">경기 {counts.total} · 완료 {counts.done}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+
+            {hasMorePastEvents ? (
+              <a href={buildDashboardHref({ q: pastSearchText, pastLimit: pastLimit + PAST_EVENTS_PAGE_SIZE })} className="event-launcher-link">
+                더 보기 ({pastEvents.length}개 표시 중)
+              </a>
+            ) : null}
           </section>
         ) : null}
       </section>
