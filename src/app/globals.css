@@ -1763,6 +1763,40 @@ a:focus-visible {
   font-size: 13px;
 }
 
+.past-match-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.past-match-table th,
+.past-match-table td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.past-match-table th {
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.past-match-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.past-match-winner {
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
 .print-match-table {
   width: 100%;
   border-collapse: collapse;

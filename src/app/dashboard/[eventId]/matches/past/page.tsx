@@ -5,7 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { EventDetailItem } from "@/lib/types/event";
 import type { MatchItem, MatchPlayerSlot } from "@/lib/types/match";
 import type { PlayerItem } from "@/lib/types/player";
-import { formatDateTime } from "@/lib/utils/format-date";
+import { formatTimeOnly } from "@/lib/utils/format-date";
 import { getMatchPlayerLabel } from "@/lib/utils/player-display";
 import { getMatchStatusLabel } from "@/lib/utils/status-labels";
 
@@ -99,41 +99,44 @@ export default async function PastMatchesPage({ params, searchParams }: PastMatc
       {matchList.length === 0 ? (
         <div className="empty-card">아직 지난 경기가 없습니다.</div>
       ) : (
-        <div className="admin-stack">
-          {matchList.map((match) => {
-            const sideAPlayers = match.match_players.filter((slot) => slot.side === "A");
-            const sideBPlayers = match.match_players.filter((slot) => slot.side === "B");
+        <div style={{ overflowX: "auto" }}>
+          <table className="past-match-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>라운드</th>
+                <th>코트</th>
+                <th>시간</th>
+                <th>A</th>
+                <th>B</th>
+                <th>점수</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody>
+              {matchList.map((match) => {
+                const sideAPlayers = match.match_players.filter((slot) => slot.side === "A");
+                const sideBPlayers = match.match_players.filter((slot) => slot.side === "B");
 
-            return (
-              <article key={match.id} className="admin-match-card">
-                <div className="admin-match-top">
-                  <div>
-                    <h3 className="admin-match-title">{match.match_no} 경기</h3>
-                    <p className="admin-match-subtitle">{match.court_no ?? "코트 미정"} · {formatDateTime(match.scheduled_at)}</p>
-                  </div>
-                  <div className="admin-meta-stack">
-                    <span className={`status-chip ${match.status}`}>{getMatchStatusLabel(match.status)}</span>
-                    {match.status === "done" ? <div className="muted-text">{match.team1_score} : {match.team2_score}</div> : null}
-                  </div>
-                </div>
-
-                <div className="admin-sides-grid">
-                  <div className="admin-side-card">
-                    <span className="admin-side-label">A측{match.winner_side === "A" ? " · 승" : ""}</span>
-                    {sideAPlayers.map((slot) => (
-                      <div key={slot.player.id} className="player-primary-text">{getMatchPlayerLabel(slot.player)}</div>
-                    ))}
-                  </div>
-                  <div className="admin-side-card">
-                    <span className="admin-side-label">B측{match.winner_side === "B" ? " · 승" : ""}</span>
-                    {sideBPlayers.map((slot) => (
-                      <div key={slot.player.id} className="player-primary-text">{getMatchPlayerLabel(slot.player)}</div>
-                    ))}
-                  </div>
-                </div>
-              </article>
-            );
-          })}
+                return (
+                  <tr key={match.id}>
+                    <td>{match.match_no}</td>
+                    <td>{match.round_name ?? "-"}</td>
+                    <td>{match.court_no ?? "-"}</td>
+                    <td>{formatTimeOnly(match.scheduled_at)}</td>
+                    <td className={match.winner_side === "A" ? "past-match-winner" : ""}>
+                      {sideAPlayers.map((slot) => getMatchPlayerLabel(slot.player)).join(" · ")}
+                    </td>
+                    <td className={match.winner_side === "B" ? "past-match-winner" : ""}>
+                      {sideBPlayers.map((slot) => getMatchPlayerLabel(slot.player)).join(" · ")}
+                    </td>
+                    <td>{match.status === "done" ? `${match.team1_score} : ${match.team2_score}` : "-"}</td>
+                    <td><span className={`status-chip ${match.status}`}>{getMatchStatusLabel(match.status)}</span></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
     </main>
